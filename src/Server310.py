@@ -1,42 +1,46 @@
-import socket
-import os, time, sys
 import multiprocessing as mp
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import cgi
-MSG_SIZE = 500
+import json
 
 host = 'localhost'
 port = 8080
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
+
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
+
         f = open('src/map.html').read()
         self.wfile.write(bytes(f, 'utf-8'))
+
     def do_POST(self):
         try:
             self.send_response(301)
             self.send_header('Content-Type', 'text/html')
             self.end_headers()
-            ctype, pdict = cgi.parse_header(self.headers.get('Content-Type'))
-            pdict['boundary'] = bytes(pdict['boundary'], "utf-8")
-            if ctype == 'multipart/form-data':
-                fields = cgi.parse_multipart(self.rfile, pdict)
-                messagecontent = fields.get('message')
-            output = ''
-            output += '<html><body>'
-            output += '<h2> Okay, how about this: </h2>'
-            output += '<h1> %s </h1>' % messagecontent[0].decode("utf-8")
-            output += '<form method="POST" enctype="multipart/form-data" action="/hello"><h2> What would you like me to say?</h2><input name="message" type="text" /><input type="submit" value="Submit" /></form>'
-            output += '</body></html>'
-            self.wfile.write(output.encode())
-            print(output)
+
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            latitude = data['latitude']
+            longitude = data['longitude']
+            zoom = data['zoom']
+
+            # Do something with the data
+            # ...
+            print("latitude: ", latitude)
+            print("longitude: ", longitude)
+            print("zoom: ", zoom)
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'POST request received successfully')      
         except:
-            self.send_error(404, "{}".format(sys.exc_info()[0]))
-            print(sys.exc_info())
-        
+            self.send_response(404)
+            self.end_headers()
 
    
 def main():

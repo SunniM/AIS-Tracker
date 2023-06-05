@@ -13,11 +13,36 @@
                 disableDefaultUI: true
             };
             var map = new google.maps.Map(document.getElementById("sample"), mapOptions);
-            // map.LatLng
-            // fetch('https://localhost:8080', {
-            //     method: 'POST',
-            //     body: JSON.stringify({'id': 1001})
-            //     })
+
+            // Add an event listener to retrieve the coordinates
+
+            // map.addListener('click', function (event) {
+            //     const latitude = event.latLng.lat();
+            //     const longitude = event.latLng.lng();
+            
+            map.addListener('idle', function() {
+                const center = map.getCenter();
+                const latitude = center.lat();
+                const longitude = center.lng();
+                const zoom = map.getZoom();
+
+
+                // Create the data object with the coordinates
+                const data = {
+                    latitude: latitude,
+                    longitude: longitude,
+                    zoom: map.getZoom()
+                };
+
+                // Send the POST request
+                fetch('http://localhost:8080', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+            });
         }
 
     </script>
@@ -28,4 +53,5 @@
     <div id="sample" style="width:580px; height:400px;"></div>
     <div> </div>
 </body>
+
 </html>
