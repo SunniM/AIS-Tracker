@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://maps.googleapis.com/maps/api/js"></script>
+    <script>
+        function loadMap() {
+            var mapOptions = {
+                mapId: 'a9e21ced58ad4189',
+                center: new google.maps.LatLng(17.609993, 83.221436),
+                zoom: 5,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                disableDefaultUI: true
+            };
+            var map = new google.maps.Map(document.getElementById("sample"), mapOptions);
+            // map.LatLng
+            // fetch('https://localhost:8080', {
+            //     method: 'POST',
+            //     body: JSON.stringify({'id': 1001})
+            //     })
+        }
+
+    </script>
+
+</head>
+
+<body onload="loadMap()">
+    <div id="sample" style="width:580px; height:400px;"></div>
+    <div> </div>
+</body>
+</html>
