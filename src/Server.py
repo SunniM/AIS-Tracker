@@ -12,7 +12,7 @@ class MyServer(BaseHTTPRequestHandler):
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
-        f = open('src/map.html').read()
+        f = open('src/index.html').read()
         self.wfile.write(bytes(f, 'utf-8'))
 
     def do_POST(self):
