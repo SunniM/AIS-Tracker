@@ -26,12 +26,11 @@
                 const longitude = center.lng();
                 const zoom = map.getZoom();
 
-
                 // Create the data object with the coordinates
                 const data = {
                     latitude: latitude,
                     longitude: longitude,
-                    zoom: map.getZoom()
+                    zoom: map.getZoom(),
                 };
 
                 // Send the POST request
@@ -50,7 +49,7 @@
 </head>
 
 <body onload="loadMap()">
-    <div id="sample" style="width:580px; height:400px;"></div>
+    <div id="sample" style="width: 1920px; height:1080px;"></div>
     <div> </div>
 </body>
 
