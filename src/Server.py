@@ -51,6 +51,7 @@ class MyServer(BaseHTTPRequestHandler):
             print("botLeft: ", botLeft)
             print("topRight: ", topRight)
             print("botRight: ", botRight)
+            asyncio.run(connect_ais_stream(min_lat, min_lng, max_lat, max_lng))
 
             self.send_response(200)
             self.send_header('Content-type', 'text/plain')
@@ -80,10 +81,10 @@ def calculate_bounding_box(lat, lng, zoom, width, height):
     return (lat-shiftDegreesNS), (lng-shiftDegreesEW), (lat+shiftDegreesNS), (lng+shiftDegreesEW)
 
 #Gets the Raw AIS data from AISStream.io 
-async def connect_ais_stream():
+async def connect_ais_stream(south, west, north, east):
 
     async with websockets.connect("wss://stream.aisstream.io/v0/stream") as websocket:
-        subscribe_message = {"APIKey": "d77b1be3c710d2d404386475ef886b33989950e3", "BoundingBoxes": [[[-180, -90], [180, 90]]]}
+        subscribe_message = {"APIKey": "d77b1be3c710d2d404386475ef886b33989950e3", "BoundingBoxes": [[[south, west], [north, east]]]}
 
         subscribe_message_json = json.dumps(subscribe_message)
         await websocket.send(subscribe_message_json)
