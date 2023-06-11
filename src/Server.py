@@ -1,3 +1,7 @@
+import base64
+import json
+import math
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json, traceback
 
@@ -11,10 +15,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.ws_handler = None
         self.pipe = pipe
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
-    
+
     # Handles get requests
     def do_GET(self):
-
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
@@ -24,9 +27,38 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     # Handles post requests
     def do_POST(self):
+        if self.path == '/save-image':
+            self.save_image()
+        else:
+            self.handle_default_post()
+
+    def save_image(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        data = json.loads(post_data)
+
+        if 'image' in data:
+            # Save the image locally
+            self.save_image_locally(data['image'])
+
+        # Send the response
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b'Image saved successfully')
+
+    def save_image_locally(self, image_data):
+        # Extract the base64-encoded image data
+        _, image_data = image_data.split(',')
+
+        # Decode and save the image locally
+        with open('map_image.jpg', 'wb') as file:
+            file.write(base64.b64decode(image_data))
+
+    def handle_default_post(self):
         try:
-            self.send_response(301)
-            self.send_header('Content-Type', 'text/html')
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
             self.end_headers()
 
             content_length = int(self.headers['Content-Length'])
@@ -42,10 +74,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             map.print_map_data(1920, 1080)
           
 
-            self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(b'POST request received successfully')      
+            self.wfile.write(b'POST request received successfully')
         except:
             self.send_response(404)
             self.end_headers()
@@ -74,6 +103,7 @@ def run_server(conn):
 def close_server(server):
     server.server_close()
     print("Server Closed")
+
 
 if __name__ == '__main__':
     run_server(None)
