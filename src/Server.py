@@ -2,13 +2,13 @@ import base64
 import json
 import math
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import json, traceback
-
+import json, traceback, base64, math
 import Map
 
 server_address = ('localhost', 8080)
 
 class RequestHandler(BaseHTTPRequestHandler):
+
 
     def __init__(self, pipe, *args, **kwargs):
         self.ws_handler = None
