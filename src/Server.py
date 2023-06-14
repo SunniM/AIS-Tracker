@@ -15,6 +15,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.pipe = pipe
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
     
+    # Handles get requests
     def do_GET(self):
 
         self.send_response(200)
@@ -24,6 +25,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         f = open('src/index.html').read()
         self.wfile.write(bytes(f, 'utf-8'))
 
+    # Handles post requests
     def do_POST(self):
         try:
             self.send_response(301)
@@ -37,18 +39,11 @@ class RequestHandler(BaseHTTPRequestHandler):
             # Do something with the data
             map = Map.Map(data['latitude'], data['longitude'], data['zoom'])
 
-            self.pipe.send(map)
+            if self.pipe:
+                self.pipe.send(map)
 
-            
-            #Printing all data
-            # print("\nlatitude: ", map.latitude)
-            # print("longitude: ", map.longitude)
-            # print("zoom: ", map.zoom)
-            # print("topLeft: ", (max_lat,min_lng))
-            # print("botLeft: ", (max_lat,max_lng))
-            # print("topRight: ", (min_lat,min_lng))
-            # print("botRight: ", (min_lat,max_lng)) 
-            # print("\n")            
+            map.print_map_data(1920, 1080)
+          
 
             self.send_response(200)
             self.send_header('Content-type', 'text/plain')
@@ -59,30 +54,30 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             traceback.print_exc()
 
+# Starts server and handles communicates with controller
 def run_server(conn):
     server = HTTPServer(server_address, lambda *args, **kwargs: RequestHandler(conn, *args, **kwargs))
     print("Server started http://%s:%s" % server_address)
 
     # Serve requests until the parent process sends the termination signal
-    while True:
-        server.handle_request()
-        if conn.poll():
-            message = conn.recv()
-            if message == 'terminate':
-                break
-    server.server_close()
-
-
-def main():
-    server = HTTPServer(server_address, RequestHandler)
-
     try:
-        server.serve_forever()
+        while True:
+            server.handle_request()
+            if conn:
+                if conn.poll():
+                    message = conn.recv()
+                    if message == 'terminate':
+                        break
+        close_server(server)
     except KeyboardInterrupt:
         pass
+    close_server()
 
+# Closes server
+def close_server(server):
     server.server_close()
-    print("Server stopped.")  
+    print("Server Closed")
 
 if __name__ == '__main__':
-    main()
+
+    run_server(None)
