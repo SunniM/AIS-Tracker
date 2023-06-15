@@ -2,7 +2,6 @@ import base64
 import json
 import math
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import json, traceback
 
 import Map
