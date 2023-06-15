@@ -3,6 +3,9 @@ import json
 import math
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json, traceback, base64, math
+from tkinter import Tk, Label
+from PIL import Image, ImageTk
+
 import Map
 
 server_address = ('localhost', 8080)
@@ -70,8 +73,32 @@ class RequestHandler(BaseHTTPRequestHandler):
             if self.pipe:
                 self.pipe.send(map)
 
-            map.print_map_data(1920, 1080)
           
+            # Create the main window
+            window = Tk()
+
+            # Set the window title
+            window.title("Image Background Example")
+
+            # Set the window size
+            window.geometry("1920x1080")
+
+            # Load the image
+            image = Image.open("D:\Programming Projects\C++\AIS Tracker\AIS-Tracker\map_image.jpg")
+            background_image = ImageTk.PhotoImage(image)
+
+            # Create a label with the image as the background
+            background_label = Label(window, image=background_image)
+            background_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+            # Add other widgets or perform other operations on the window
+
+            # Start the main event loop
+            window.mainloop()
+
+            # Printing all data
+            map.print_map_data(1920, 1080)
+            
 
             self.wfile.write(b'POST request received successfully')
         except:
