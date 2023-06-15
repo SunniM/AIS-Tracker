@@ -1,6 +1,7 @@
 # Config Files
 .vscode
 __pycache__
+*.pyc
 # Runtime Files
 *.png
 *.jpg
