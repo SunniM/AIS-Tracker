@@ -1,17 +1,21 @@
-import multiprocessing as mp
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import json
-import math
-import asyncio
-import websockets
-from datetime import datetime, timezone
+import json, traceback
 
-host = 'localhost'
-port = 8080
-earthCir = 40075016.686
-degreesPerMeter = 360 / earthCir
+import Map
 
-class MyServer(BaseHTTPRequestHandler):
+
+server_address = ('localhost', 8080)
+
+
+
+class RequestHandler(BaseHTTPRequestHandler):
+
+    def __init__(self, pipe, *args, **kwargs):
+        self.ws_handler = None
+        self.pipe = pipe
+        BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
+    
+    # Handles get requests
     def do_GET(self):
 
         self.send_response(200)
@@ -21,6 +25,7 @@ class MyServer(BaseHTTPRequestHandler):
         f = open('src/index.html').read()
         self.wfile.write(bytes(f, 'utf-8'))
 
+    # Handles post requests
     def do_POST(self):
         try:
             self.send_response(301)
@@ -30,27 +35,15 @@ class MyServer(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data)
-            latitude = data['latitude']
-            longitude = data['longitude']
-            zoom = data['zoom']
            
             # Do something with the data
-            
-            #Uses function to create bounds
-            [min_lat, min_lng, max_lat, max_lng] = calculate_bounding_box(latitude,longitude,zoom,1920,1080)
-            topLeft = [max_lat,min_lng]
-            topRight = [max_lat,max_lng]
-            botLeft = [min_lat,min_lng]
-            botRight = [min_lat,max_lng]
-            
-            #Printing all data
-            print("latitude: ", latitude)
-            print("longitude: ", longitude)
-            print("zoom: ", zoom)
-            print("topLeft: ", topLeft)
-            print("botLeft: ", botLeft)
-            print("topRight: ", topRight)
-            print("botRight: ", botRight)
+            map = Map.Map(data['latitude'], data['longitude'], data['zoom'])
+
+            if self.pipe:
+                self.pipe.send(map)
+
+            map.print_map_data(1920, 1080)
+          
 
             self.send_response(200)
             self.send_header('Content-type', 'text/plain')
@@ -59,56 +52,32 @@ class MyServer(BaseHTTPRequestHandler):
         except:
             self.send_response(404)
             self.end_headers()
+            traceback.print_exc()
 
-#Converts to radians from Deg
-def toRadians(degrees):
-    return (degrees * math.pi/180)
+# Starts server and handles communicates with controller
+def run_server(conn):
+    server = HTTPServer(server_address, lambda *args, **kwargs: RequestHandler(conn, *args, **kwargs))
+    print("Server started http://%s:%s" % server_address)
 
-
-#Calculates the bounding box of what is displayed
-def calculate_bounding_box(lat, lng, zoom, width, height):
-    metersPerPixelEW = earthCir / math.pow(2, zoom + 8)
-    metersPerPixelNS = earthCir / math.pow(2, zoom + 8) * math.cos(toRadians(lat))
-    
-    shiftMetersEW = width/2 * metersPerPixelEW
-    shiftMetersNS = height/2 * metersPerPixelNS
-    
-    shiftDegreesEW = shiftMetersEW * degreesPerMeter
-    shiftDegreesNS = shiftMetersNS * degreesPerMeter
-    
-    # min_lat, min_lng, max_lat, max_lng
-    return (lat-shiftDegreesNS), (lng-shiftDegreesEW), (lat+shiftDegreesNS), (lng+shiftDegreesEW)
-
-#Gets the Raw AIS data from AISStream.io 
-async def connect_ais_stream():
-
-    async with websockets.connect("wss://stream.aisstream.io/v0/stream") as websocket:
-        subscribe_message = {"APIKey": "d77b1be3c710d2d404386475ef886b33989950e3", "BoundingBoxes": [[[-180, -90], [180, 90]]]}
-
-        subscribe_message_json = json.dumps(subscribe_message)
-        await websocket.send(subscribe_message_json)
-
-        async for message_json in websocket:
-            message = json.loads(message_json)
-            message_type = message["MessageType"]
-
-            if message_type == "PositionReport":
-                # the message parameter contains a key of the message type which contains the message itself
-                ais_message = message['Message']['PositionReport']
-                print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {ais_message['Latitude']} Longitude: {ais_message['Longitude']}")
-
-   
-def main():
-    server = HTTPServer((host,port), MyServer)
-    print("Server started http://%s:%s" % (host, port))
-
+    # Serve requests until the parent process sends the termination signal
     try:
-        server.serve_forever()
+        while True:
+            server.handle_request()
+            if conn:
+                if conn.poll():
+                    message = conn.recv()
+                    if message == 'terminate':
+                        break
+        close_server(server)
     except KeyboardInterrupt:
         pass
+    close_server()
 
+# Closes server
+def close_server(server):
     server.server_close()
-    print("Server stopped.")  
+    print("Server Closed")
 
 if __name__ == '__main__':
-    main()
+
+    run_server(None)
