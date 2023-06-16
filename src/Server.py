@@ -3,10 +3,7 @@ import json, traceback
 
 import Map
 
-
 server_address = ('localhost', 8080)
-
-
 
 class RequestHandler(BaseHTTPRequestHandler):
 
