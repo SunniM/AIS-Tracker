@@ -84,7 +84,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             window.geometry("1920x1080")
 
             # Load the image
-            image = Image.open("D:\Programming Projects\C++\AIS Tracker\AIS-Tracker\map_image.jpg")
+            image = Image.open("map_image.jpg")
             background_image = ImageTk.PhotoImage(image)
 
             # Create a label with the image as the background
@@ -123,7 +123,7 @@ def run_server(conn):
         close_server(server)
     except KeyboardInterrupt:
         pass
-    close_server()
+    close_server(server)
 
 # Closes server
 def close_server(server):
