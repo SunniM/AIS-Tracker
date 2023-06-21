@@ -1,72 +1,65 @@
-import noise
+import cv2
 import numpy as np
 import pygame
+import noise
 
-# Set up parameters for Perlin noise generation and animation
-width = 400  # Width of the height map
-height = 400  # Height of the height map
-depth = 50  # Number of frames in the animation
+# Set up parameters for the fractal noise
+width = 400  # Width of the fractal noise
+height = 400  # Height of the fractal noise
 
-scale = 10.0  # Adjust the scale to control the frequency of the waves
-octaves = 6
-persistence = 0.5
-lacunarity = 2.0
-scroll_speed = 1  # Speed of the scrolling effect
+scale = 0.05  # Controls the scale of the fractal noise
+octaves = 6  # Number of octaves in the fractal noise
+persistence = 0.5  # Persistence of the fractal noise
+lacunarity = 2.0  # Lacunarity of the fractal noise
 
-# Precompute color lookup table
-color_lookup = np.zeros((256, 3), dtype=np.uint8)
-for i in range(256):
-    r = min(255, int(50  + i * 0.5))
-    g = min(255, int(75 + i * 0.5))
-    b = min(255, int(200 + i * 0.5))
-    color_lookup[i] = (r, g, b)
+# Set up parameters for the video
+output_file = 'fractal_noise_video.mp4'
+fps = 30
+duration = 5  # Duration of the video in seconds
 
-# Initialize Pygame with hardware acceleration
+# Initialize pygame
 pygame.init()
 window_size = (width, height)
-screen = pygame.display.set_mode(window_size, pygame.HWSURFACE | pygame.DOUBLEBUF)
-clock = pygame.time.Clock()
+screen = pygame.Surface(window_size)
 
-# Generate the initial height map
-height_map = np.zeros((height, width))
+# Create a VideoWriter object to save the video
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+video_out = cv2.VideoWriter(output_file, fourcc, fps, window_size)
 
-# Game loop
-running = True
-frame_index = 0
-while running:
+# Generate the fractal noise frames
+num_frames = duration * fps
+for frame_index in range(num_frames):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            pygame.quit()
+            exit()
 
-    # Generate the height map for the current frame
+    # Generate the fractal noise grid
+    noise_grid = np.zeros((height, width))
     for y in range(height):
         for x in range(width):
-            shifted_x = x + frame_index * scroll_speed
-            value = noise.pnoise3(shifted_x / scale,
-                                  y / scale,
-                                  frame_index / scale,
-                                  octaves=octaves,
-                                  persistence=persistence,
-                                  lacunarity=lacunarity,
-                                  repeatx=width,
-                                  repeaty=height,
-                                  repeatz=depth,
-                                  base=0)
-            height_map[y, x] = value
+            noise_grid[y][x] = noise.snoise2(x * scale, y * scale, octaves=octaves, persistence=persistence,
+                                             lacunarity=lacunarity)
 
-    # Normalize height map to [0, 1] range
-    height_map = (height_map - np.min(height_map)) / (np.max(height_map) - np.min(height_map))
+    # Normalize the noise grid to the [0, 1] range
+    min_value = np.min(noise_grid)
+    max_value = np.max(noise_grid)
+    noise_grid = (noise_grid - min_value) / (max_value - min_value)
 
-    # Apply color lookup to the height map
-    height_map_scaled = (height_map * 255).astype(np.uint8)
-    frame_color = color_lookup[height_map_scaled]
+    # Render the fractal noise
+    for y in range(height):
+        for x in range(width):
+            color_value = int(noise_grid[y][x] * 255)
+            screen.set_at((x, y), (color_value, color_value, color_value))
 
-    # Render the current frame
-    frame_surface = pygame.surfarray.make_surface(frame_color)
-    screen.blit(pygame.transform.scale(frame_surface, window_size), (0, 0))
-    pygame.display.flip()
+    # Convert the pygame surface to a numpy array
+    frame_array = pygame.surfarray.array3d(screen)
 
-    frame_index = (frame_index + 1) % depth
-    clock.tick(30)  # Limit frame rate to 30 FPS
+    # Convert the numpy array from RGB to BGR format for OpenCV
+    frame_array_bgr = cv2.cvtColor(frame_array, cv2.COLOR_RGB2BGR)
 
-pygame.quit()
+    # Write the frame to the video file
+    video_out.write(frame_array_bgr)
+
+# Release the VideoWriter object and close the video file
+video_out.release()
