@@ -1,12 +1,10 @@
-import base64
-import json
-import math
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import json, traceback, base64, math
 from tkinter import Tk, Label
 from PIL import Image, ImageTk
 
-host = 'localhost'
-port = 8080
+import Map
+
 earthCir = 40075016.686
 degreesPerMeter = 360 / earthCir
 
@@ -16,7 +14,19 @@ image_size = '1920x1080'  # Size of the image in pixels
 map_id = 'YOUR_MAP_ID'  # Specific map ID
 
 
-class MyServer(BaseHTTPRequestHandler):
+server_address = ('localhost', 8080)
+
+
+
+class RequestHandler(BaseHTTPRequestHandler):
+
+
+    def __init__(self, pipe, *args, **kwargs):
+        self.ws_handler = None
+        self.pipe = pipe
+        BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
+    
+    # Handles get requests
     def do_GET(self):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
@@ -25,6 +35,7 @@ class MyServer(BaseHTTPRequestHandler):
         f = open('src/index.html').read()
         self.wfile.write(bytes(f, 'utf-8'))
 
+    # Handles post requests
     def do_POST(self):
         if self.path == '/save-image':
             self.save_image()
@@ -63,17 +74,14 @@ class MyServer(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data)
-            latitude = data['latitude']
-            longitude = data['longitude']
-            zoom = data['zoom']
-
+           
             # Do something with the data
-            [min_lat, min_lng, max_lat, max_lng] = calculate_bounding_box(latitude, longitude, zoom, 1920, 1080)
-            topLeft = [max_lat, min_lng]
-            topRight = [max_lat, max_lng]
-            botLeft = [min_lat, min_lng]
-            botRight = [min_lat, max_lng]
+            map = Map.Map(data['latitude'], data['longitude'], data['zoom'])
 
+            if self.pipe:
+                self.pipe.send(map)
+
+          
             # Create the main window
             window = Tk()
 
@@ -84,7 +92,7 @@ class MyServer(BaseHTTPRequestHandler):
             window.geometry("1920x1080")
 
             # Load the image
-            image = Image.open("D:\Programming Projects\C++\AIS Tracker\AIS-Tracker\map_image.jpg")
+            image = Image.open("map_image.jpg")
             background_image = ImageTk.PhotoImage(image)
 
             # Create a label with the image as the background
@@ -95,54 +103,42 @@ class MyServer(BaseHTTPRequestHandler):
 
             # Start the main event loop
             window.mainloop()
-            
+
             # Printing all data
-            print("latitude: ", latitude)
-            print("longitude: ", longitude)
-            print("zoom: ", zoom)
-            print("topLeft: ", topLeft)
-            print("botLeft: ", botLeft)
-            print("topRight: ", topRight)
-            print("botRight: ", botRight)
+            map.print_map_data(1920, 1080)
+            
 
             self.wfile.write(b'POST request received successfully')
         except:
             self.send_response(404)
             self.end_headers()
+            traceback.print_exc()
 
+# Starts server and handles communicates with controller
+def run_server(conn):
+    server = HTTPServer(server_address, lambda *args, **kwargs: RequestHandler(conn, *args, **kwargs))
+    print("Server started http://%s:%s" % server_address)
 
-# Converts to radians from Deg
-def toRadians(degrees):
-    return (degrees * math.pi / 180)
-
-
-# Calculates the bounding box of what is displayed
-def calculate_bounding_box(lat, lng, zoom, width, height):
-    metersPerPixelEW = earthCir / math.pow(2, zoom + 8)
-    metersPerPixelNS = earthCir / math.pow(2, zoom + 8) * math.cos(toRadians(lat))
-
-    shiftMetersEW = width / 2 * metersPerPixelEW
-    shiftMetersNS = height / 2 * metersPerPixelNS
-
-    shiftDegreesEW = shiftMetersEW * degreesPerMeter
-    shiftDegreesNS = shiftMetersNS * degreesPerMeter
-
-    # min_lat, min_lng, max_lat, max_lng
-    return (lat - shiftDegreesNS), (lng - shiftDegreesEW), (lat + shiftDegreesNS), (lng + shiftDegreesEW)
-
-
-def main():
-    server = HTTPServer((host, port), MyServer)
-    print("Server started http://%s:%s" % (host, port))
-
+    # Serve requests until the parent process sends the termination signal
     try:
-        server.serve_forever()
+        while True:
+            server.handle_request()
+            if conn:
+                if conn.poll():
+                    message = conn.recv()
+                    if message == 'terminate':
+                        break
+        close_server(server)
     except KeyboardInterrupt:
         pass
+    close_server(server)
 
+# Closes server
+def close_server(server):
     server.server_close()
-    print("Server stopped.")
+    print("Server Closed")
+
 
 
 if __name__ == '__main__':
-    main()
+    run_server(None)
