@@ -1,6 +1,16 @@
 
-import Server, WebSocketHandler, Map
+import threading, json, websockets, time, ssl, asyncio
 import multiprocessing as mp
+
+from websockets.sync import client
+from datetime import datetime, timezone
+
+
+import Server, WebSocketHandler, Map
+
+
+
+
 
 server_address = ('localhost', 8080)
 
@@ -10,6 +20,7 @@ def main():
     server_pipe, controller_pipe = mp.Pipe()
 
     ws_handler = None
+    ws_process = None
 
     # Starting local webserver
     server_process = mp.Process(target=Server.run_server, args=(server_pipe,))
@@ -26,16 +37,29 @@ def main():
                 # received a map object
                 case Map.Map:      
                     print("Map Recieved")
-                    # checks for exisring websocket connection
-                    if ws_handler:
-                        # closes existing connection
-                        ws_handler.close_connection()
-                        ws_handler.join()
+
                     # gets bounding box
                     south, west, north, east = data.calculate_bounding_box(1980,1080)
+                    
+                    # checks for exisring websocket connection
+                    if ws_handler and ws_process.is_alive():
+                        # resend existing connection
+                        try:
+                            ws_handler.resubscribe(south, west, north, east)
+                        except:
+                            pass
+                    else:
                     # starts websocket connection
-                    ws_handler = WebSocketHandler.WebSocketHandler(south, west, north, east)
-                    ws_handler.start()
+                        ws_handler = WebSocketHandler.WebSocketHandler(south, west, north, east)
+                        ws_process = mp.Process(target=ws_handler.run)
+                    while not ws_process.is_alive():
+                        ws_process.start() 
+                    
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        for child in mp.active_children():
+            child.kill()
+        print('interrupted')
