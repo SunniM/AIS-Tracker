@@ -13,26 +13,30 @@
                 disableDefaultUI: true
             };
             var map = new google.maps.Map(document.getElementById("sample"), mapOptions);
-
-            // Add an event listener to retrieve the coordinates
-
-            // map.addListener('click', function (event) {
-            //     const latitude = event.latLng.lat();
-            //     const longitude = event.latLng.lng();
+        
+            // Function to update text fields with current coordinates
+            function updateTextFields(latitude, longitude) {
+                const latitudeInput = document.getElementById('latitude-input');
+                const longitudeInput = document.getElementById('longitude-input');
             
+                latitudeInput.value = latitude.toFixed(3);
+                longitudeInput.value = longitude.toFixed(3);
+            }
+        
+            // Add an event listener to retrieve the coordinates
             map.addListener('idle', function() {
                 const center = map.getCenter();
                 const latitude = center.lat();
                 const longitude = center.lng();
                 const zoom = map.getZoom();
-
+        
                 // Create the data object with the coordinates
                 const data = {
                     latitude: latitude,
                     longitude: longitude,
-                    zoom: map.getZoom(),
+                    zoom: zoom
                 };
-
+        
                 // Send the POST request
                 fetch('http://localhost:8080', {
                     method: 'POST',
@@ -40,17 +44,69 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(data)
-                })
+                });
+        
+                // Update the text fields with the current coordinates
+                updateTextFields(latitude, longitude);
             });
+        
+            // Function to handle button click
+            function handleClick() {
+                const latitudeInput = document.getElementById('latitude-input');
+                const longitudeInput = document.getElementById('longitude-input');
+        
+                // Get the values from the input fields
+                const latitude = parseFloat(latitudeInput.value);
+                const longitude = parseFloat(longitudeInput.value);
+        
+                // Check if the values are valid numbers
+                if (!isNaN(latitude) && !isNaN(longitude)) {
+                    // Set the map center to the input values
+                    map.setCenter({ lat: latitude, lng: longitude });
+        
+                    // Update the data object with the new coordinates
+                    const data = {
+                        latitude: latitude,
+                        longitude: longitude,
+                        zoom: map.getZoom()
+                    };
+        
+                    // Send the POST request
+                    fetch('http://localhost:8080', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    alert('Please enter valid coordinates.');
+                }
+            }
+        
+            // Add a button click event listener
+            document.getElementById('update-button').addEventListener('click', handleClick);
+        
+            // Get the initial coordinates and update the text fields
+            const initialCenter = map.getCenter();
+            const initialLatitude = initialCenter.lat();
+            const initialLongitude = initialCenter.lng();
+            updateTextFields(initialLatitude, initialLongitude);
         }
-
+        
     </script>
 
 </head>
 
 <body onload="loadMap()">
-    <div id="sample" style="width: 1920px; height:1080px;"></div>
-    <div> </div>
+    <div id="sample" style="width: 1920px; height: 1080px;"></div>
+    <div>
+        <label for="latitude-input">Latitude:</label>
+        <input type="text" id="latitude-input">
+        <label for="longitude-input">Longitude:</label>
+        <input type="text" id="longitude-input">
+        <button id="update-button">Update Map</button>
+    </div>
 </body>
 
 </html>
