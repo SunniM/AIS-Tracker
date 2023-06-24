@@ -14,12 +14,13 @@ class WebSocketHandler():
                                      on_error=self.on_error,
                                      on_close=self.on_close,
                                      )
+        print("handler id: ", id(self))
     def run(self):
-        # websocket.enableTrace(True)
-        self.ws.run_forever(dispatcher = rel)
+        websocket.enableTrace(True)
+        self.ws.run_forever()
         # dispatcher = rel
-        rel.signal(2, rel.abort)
-        rel.dispatch()
+        # rel.signal(2, rel.abort)
+        # rel.dispatch()
 
 
     def on_message(self, ws, message):
@@ -29,7 +30,6 @@ class WebSocketHandler():
         if message_type == "PositionReport":
             # the message parameter contains a key of the message type which contains the message itself
             ais_message = message['Message']['PositionReport']
-            time.sleep(1)
             print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {ais_message['Latitude']} Longitude: {ais_message['Longitude']}")
 
     def on_error(self, ws, error):
@@ -40,10 +40,13 @@ class WebSocketHandler():
         print("Connection Closed")
         print('status code: ', close_status_code)
         print('message: ', close_msg)
+        self.run()
 
 
     def on_open(self, ws):
-        self.subscribe()
+        subscription_message = {"APIKey": "d77b1be3c710d2d404386475ef886b33989950e3", "BoundingBoxes": [[[self.south, self.west], [self.north, self.east]]]}
+        json_message = json.dumps(subscription_message)
+        self.ws.send(json_message)
         print("Opened connection")
 
     def set_bounding_box(self, south, west, north, east):
@@ -69,5 +72,9 @@ class WebSocketHandler():
         self.ws.send(json_message)
 
 if __name__ == '__main__':
-    conn = WebSocketHandler(-90,-180,90,180)
+    conn = WebSocketHandler(-40,-40,-30,-30)
     conn.run()
+    
+    time.sleep(5)
+    conn.resubscribe(-90,-180,90,180)
+    print('Resubsribe Sucessful')

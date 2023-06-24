@@ -1,15 +1,11 @@
-
 import threading, json, websockets, time, ssl, asyncio
 import multiprocessing as mp
 
 from websockets.sync import client
 from datetime import datetime, timezone
 
-
+import traceback
 import Server, WebSocketHandler, Map
-
-
-
 
 
 server_address = ('localhost', 8080)
@@ -46,14 +42,18 @@ def main():
                         # resend existing connection
                         try:
                             ws_handler.resubscribe(south, west, north, east)
+                            print('resubsribe Sucessful')
                         except:
+                            traceback.print_exc()
+                            print("resubscribe failed")
                             pass
                     else:
                     # starts websocket connection
                         ws_handler = WebSocketHandler.WebSocketHandler(south, west, north, east)
                         ws_process = mp.Process(target=ws_handler.run)
                     while not ws_process.is_alive():
-                        ws_process.start() 
+                        ws_process.start()
+
                     
 
 if __name__ == '__main__':
