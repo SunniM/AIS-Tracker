@@ -14,27 +14,21 @@ ret, thresh_img = cv2.threshold(img_gray, thresh, 255, cv2.THRESH_BINARY)
 # Find contours
 contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-# Create an empty image for contours
-img_contours = np.zeros(image.shape, dtype=np.uint8)
-# Draw the contours on the empty image
-cv2.drawContours(img_contours, contours, -1, (0, 255, 0), 2)
-# Save image
-cv2.imwrite('contours.png', img_contours)
+# Create a DXF document
+doc = ezdxf.new('R2010')  # Use the DXF R2010 format
 
-squeezed = [np.squeeze(cnt, axis=1) for cnt in contours]
-inverted_squeezed = [arr * [1, -1] for arr in squeezed]
+# Create a new layer for the contours
+contour_layer = doc.layers.new(name='Contours')
 
-dwg = ezdxf.new("R2010")
-msp = dwg.modelspace()
-dwg.layers.new(name="greeny green lines", dxfattribs={"color": 3})
+# Get the model space of the document
+msp = doc.modelspace()
 
-for ctr in inverted_squeezed:
-   for n in range(len(ctr)):
-        if n >= len(ctr) - 1:
-            n = 0
-        try:
-            msp.add_line(ctr[n], ctr[n + 1], dxfattribs={"layer": "greeny green lines", "lineweight": 20})
-        except IndexError:
-            pass
+# Create a new polyline entity for each contour and add it to the model space
+for contour in contours:
+    points = [tuple(point[0]) for point in contour]
+    flipped_points = [(x, image.shape[0] - y) for x, y in points]  # Flip the y-coordinates
+    flipped_points.append(flipped_points[0])  # Repeat the first point to close the polyline
+    msp.add_lwpolyline(flipped_points, dxfattribs={'layer': 'Contours'})
 
-dwg.saveas("output.dxf")
+# Save the DXF file
+doc.saveas('contours.dxf')
