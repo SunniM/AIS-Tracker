@@ -14,9 +14,9 @@ class WebSocketHandler():
                                      on_error=self.on_error,
                                      on_close=self.on_close,
                                      )
-        print("handler id: ", id(self))
+        
     def run(self):
-        websocket.enableTrace(True)
+        # websocket.enableTrace(True)
         self.ws.run_forever()
         # dispatcher = rel
         # rel.signal(2, rel.abort)
@@ -44,9 +44,7 @@ class WebSocketHandler():
 
 
     def on_open(self, ws):
-        subscription_message = {"APIKey": "d77b1be3c710d2d404386475ef886b33989950e3", "BoundingBoxes": [[[self.south, self.west], [self.north, self.east]]]}
-        json_message = json.dumps(subscription_message)
-        self.ws.send(json_message)
+        self.subscribe()
         print("Opened connection")
 
     def set_bounding_box(self, south, west, north, east):
@@ -74,7 +72,3 @@ class WebSocketHandler():
 if __name__ == '__main__':
     conn = WebSocketHandler(-40,-40,-30,-30)
     conn.run()
-    
-    time.sleep(5)
-    conn.resubscribe(-90,-180,90,180)
-    print('Resubsribe Sucessful')

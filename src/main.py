@@ -39,18 +39,22 @@ def main():
                     
                     # checks for exisring websocket connection
                     if ws_handler and ws_process.is_alive():
+
+                        ws_handler.close_connection()
+                        ws_process.kill()
+                        ws_process.join()
                         # resend existing connection
-                        try:
-                            ws_handler.resubscribe(south, west, north, east)
-                            print('resubsribe Sucessful')
-                        except:
-                            traceback.print_exc()
-                            print("resubscribe failed")
-                            pass
-                    else:
+                            # try:
+                            #     ws_handler.resubscribe(south, west, north, east)
+                            #     print('Resubsribe Sucessful')
+                            # except:
+                            #     traceback.print_exc()
+                            #     print("resubscribe failed")
+                            #     # ws_process.kill()
+                            #     # ws_process.join()
                     # starts websocket connection
-                        ws_handler = WebSocketHandler.WebSocketHandler(south, west, north, east)
-                        ws_process = mp.Process(target=ws_handler.run)
+                    ws_handler = WebSocketHandler.WebSocketHandler(south, west, north, east)
+                    ws_process = mp.Process(target=ws_handler.run)
                     while not ws_process.is_alive():
                         ws_process.start()
 
