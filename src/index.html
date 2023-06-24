@@ -2,6 +2,15 @@
 <html>
 
 <head>
+    <script>
+        HTMLCanvasElement.prototype.getContext = function (origFn) {
+            return function (type, attribs) {
+                attribs = attribs || {};
+                attribs.preserveDrawingBuffer = true;
+                return origFn.call(this, type, attribs);
+            };
+        }(HTMLCanvasElement.prototype.getContext);
+    </script>
     <script src="https://maps.googleapis.com/maps/api/js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>

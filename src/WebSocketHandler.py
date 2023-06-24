@@ -1,5 +1,5 @@
 import websocket, threading
-import json
+import json, time
 from datetime import datetime, timezone
 
 class WebSocketHandler(threading.Thread):
@@ -26,6 +26,7 @@ class WebSocketHandler(threading.Thread):
         if message_type == "PositionReport":
             # the message parameter contains a key of the message type which contains the message itself
             ais_message = message['Message']['PositionReport']
+            time.sleep(1)
             print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {ais_message['Latitude']} Longitude: {ais_message['Longitude']}")
 
     def on_error(self, ws, error):
