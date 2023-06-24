@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
 import ezdxf
+import matplotlib.pyplot as plt
 
-def generate_dxf_from_contours(contours, width, height, border_size, output_file):
+def generate_dxf_from_contours(contours, width, height, output_file, min_contour_area):
     if len(contours) == 0:
         return  # Exit if no contours are provided
 
@@ -15,28 +16,30 @@ def generate_dxf_from_contours(contours, width, height, border_size, output_file
     # Get the model space of the document
     msp = doc.modelspace()
 
-    # Calculate the border coordinates
-    border_coords = [
-        (border_size, border_size),
-        (width - border_size, border_size),
-        (width - border_size, height - border_size),
-        (border_size, height - border_size),
-        (border_size, border_size)
-    ]
+    # Calculate the scaling factors
+    image_width = image.shape[1]
+    image_height = image.shape[0]
 
-    # Add the border as a polyline entity to the model space
-    msp.add_lwpolyline(border_coords, dxfattribs={'layer': 'Contours', 'closed': True})
+    scale_x = width / image_width
+    scale_y = height / image_height
 
     # Scale and flip the contour points for each contour
     for contour in contours:
         if len(contour) > 0:
+            # Calculate the area of the contour
+            contour_area = cv2.contourArea(contour)
+
+            # Check if the contour area is below the threshold for closing gaps
+            if contour_area < min_contour_area:
+                # Close the contour by adding the first point as the last point
+                if not np.array_equal(contour[0], contour[-1]):
+                    contour = np.vstack((contour, [contour[0]]))
+
             # Scale the contour points based on the desired size
-            scale_x = (width - 2 * border_size) / float(image.shape[1])
-            scale_y = (height - 2 * border_size) / float(image.shape[0])
             scaled_contour = contour[:, 0, :] * np.array([scale_x, scale_y])
 
             # Flip the y-coordinates of the scaled contour points
-            flipped_contour = np.array([(point[0] + border_size, height - point[1] - border_size) for point in scaled_contour])
+            flipped_contour = np.array([(point[0], height - point[1]) for point in scaled_contour])
 
             # Create a new polyline entity for the contour and add it to the model space
             msp.add_lwpolyline(list(flipped_contour), dxfattribs={'layer': 'Contours'})
@@ -50,17 +53,22 @@ image = cv2.imread('d:\Programming Projects\C++\AIS Tracker\AIS-Tracker\src\map_
 # Convert img to gray
 img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 # Set a threshold
-thresh = 85
+thresh = 170
 # Get threshold image
 ret, thresh_img = cv2.threshold(img_gray, thresh, 255, cv2.THRESH_BINARY)
 # Find contours
 contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-# Specify the desired size of the DXF drawing and the border size
-width = 610  # Width in units (e.g., millimeters)
-height = 432  # Height in units (e.g., millimeters)
-border_size = 2.0  # Border size in units (e.g., millimeters)
+# Specify the desired size of the DXF drawing and the minimum contour area to close gaps
+width = 0.609682  # Width in units (e.g., meters)
+height = 0.4316  # Height in units (e.g., meters)
+min_contour_area = 300  # Minimum contour area to close gaps (adjust as needed)
 
-# Generate a single DXF file for all contours with a border
+# Generate a single DXF file for all contours
 output_file = 'contours.dxf'
-generate_dxf_from_contours(contours, width, height, border_size, output_file)
+generate_dxf_from_contours(contours, width, height, output_file, min_contour_area)
+
+# Preview the contour image
+plt.imshow(cv2.cvtColor(img_gray, cv2.COLOR_BGR2RGB))
+plt.title('Contour Image')
+plt.show()
