@@ -21,6 +21,7 @@ def main():
 
     ws_handler = None
     ws_process = None
+    ws_queue = mp.Queue()
 
     # Starting local webserver
     server_process = mp.Process(target=Server.run_server, args=(server_pipe,))
@@ -44,14 +45,12 @@ def main():
                     # checks for exisring websocket connection
                     if ws_handler and ws_process.is_alive():
                         # resend existing connection
-                        try:
-                            ws_handler.resubscribe(south, west, north, east)
-                        except:
-                            pass
+                        subscription_message = ws_handler.make_subscription_message(-40, -40, 40, 40)
+                        ws_queue.put(subscription_message)
                     else:
                     # starts websocket connection
-                        ws_handler = WebSocketHandler.WebSocketHandler(south, west, north, east)
-                        ws_process = mp.Process(target=ws_handler.run)
+                        ws_handler = WebSocketHandler.WebSocketHandler(ws_queue, south, west, north, east)
+                        ws_process = mp.Process(target=WebSocketHandler.run_websocket_handler, args=(ws_handler,))
                     while not ws_process.is_alive():
                         ws_process.start() 
                     
