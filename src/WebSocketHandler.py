@@ -34,9 +34,6 @@ class WebSocketHandler():
                 self.ws.send(subscription_message)
                 print("Resubscribed")
 
-        
-
-
 
     def on_message(self, ws, message):
         message = json.loads(message)
@@ -46,7 +43,20 @@ class WebSocketHandler():
         if message_type == "PositionReport":
             # the message parameter contains a key of the message type which contains the message itself
             ais_message = message['Message']['PositionReport']
-            print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {ais_message['Latitude']} Longitude: {ais_message['Longitude']}")
+            
+            Latitude = ais_message['Latitude']
+            Longitude = ais_message['Longitude']
+            
+            #should be in a methode, but wasn't able to get it working
+            width = 1920
+            height = 1080
+            #0,0 is north west of the bounding box
+            #calculating a ratio for the x and y pixel based on size of the window
+            x = width * (self.west-Longitude)/(self.east-self.west)
+            y = height * (self.north-Latitude)/(self.north-self.south)
+            # end of should be in a methode, but wasn't able to get it working
+            
+            print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {Latitude} Longitude: {Longitude} x Pixel: {x} y Pixel: {y}")
 
         if self.count % 300 == 0:
             print(self.count)
