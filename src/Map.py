@@ -30,7 +30,7 @@ class Map():
     
     # Printing all data
     def print_map_data(self, width, height):
-
+        
         south, west, north, east = self.calculate_bounding_box(width, height)
 
         print("\nlatitude: ", self.latitude)

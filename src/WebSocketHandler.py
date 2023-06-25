@@ -1,9 +1,9 @@
-import websocket, threading, time, rel
-import json
+import websocket, threading, time, rel, json
 from datetime import datetime, timezone
 
 class WebSocketHandler():
-    def __init__(self, south, west, north, east):
+    def __init__(self, queue, south, west, north, east):
+        self.queue = queue
         self.south = south
         self.west = west
         self.north = north
@@ -14,23 +14,44 @@ class WebSocketHandler():
                                      on_error=self.on_error,
                                      on_close=self.on_close,
                                      )
+        self.count = 0
+        self.start_time = time.time()
+        
     def run(self):
         # websocket.enableTrace(True)
-        self.ws.run_forever(dispatcher = rel)
-        # dispatcher = rel
-        rel.signal(2, rel.abort)
-        rel.dispatch()
+        self.start_time = time.time()
+        queue_thread = threading.Thread(target=self.check_queue)
+        queue_thread.start()
+
+        self.ws.run_forever(dispatcher=rel) # dispatcher = rel
+        rel.signal(2, rel.abort)  # Keyboard Interrupt  
+        rel.dispatch() 
+
+    def check_queue(self):
+        while True:
+            if not self.queue.empty():
+                subscription_message = self.queue.get()
+                self.ws.send(subscription_message)
+                print("Resubscribed")
+
+        
+
 
 
     def on_message(self, ws, message):
         message = json.loads(message)
         message_type = message["MessageType"]
+        self.count += 1
 
         if message_type == "PositionReport":
             # the message parameter contains a key of the message type which contains the message itself
             ais_message = message['Message']['PositionReport']
-            time.sleep(1)
             print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {ais_message['Latitude']} Longitude: {ais_message['Longitude']}")
+
+        if self.count % 300 == 0:
+            print(self.count)
+            print(time.time() - self.start_time)
+            self.start_time = time.time()
 
     def on_error(self, ws, error):
         print(error)
@@ -40,6 +61,7 @@ class WebSocketHandler():
         print("Connection Closed")
         print('status code: ', close_status_code)
         print('message: ', close_msg)
+        self.run()
 
 
     def on_open(self, ws):
@@ -68,6 +90,11 @@ class WebSocketHandler():
         json_message = json.dumps(subscription_message)
         self.ws.send(json_message)
 
+    def make_subscription_message(south, west, north, east):
+        subscription_message = {"APIKey": "d77b1be3c710d2d404386475ef886b33989950e3", "BoundingBoxes": [[[south, west], [north, east]]]}
+        return json.dumps(subscription_message)
+
+
 if __name__ == '__main__':
-    conn = WebSocketHandler(-90,-180,90,180)
+    conn = WebSocketHandler(-90, -180, 90, 180)
     conn.run()
