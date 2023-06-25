@@ -76,5 +76,4 @@ def close_server(server):
     print("Server Closed")
 
 if __name__ == '__main__':
-
     run_server(None)
