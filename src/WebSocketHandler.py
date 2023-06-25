@@ -1,4 +1,4 @@
-import websocket, threading, time, rel
+import websocket, threading, time, rel, os
 import json
 from datetime import datetime, timezone
 
@@ -14,23 +14,30 @@ class WebSocketHandler():
                                      on_error=self.on_error,
                                      on_close=self.on_close,
                                      )
+        self.count = 0
+        self.start_time = time.time()
         
     def run(self):
         # websocket.enableTrace(True)
+        self.start_time = time.time()
         self.ws.run_forever()
-        # dispatcher = rel
-        # rel.signal(2, rel.abort)
-        # rel.dispatch()
+
 
 
     def on_message(self, ws, message):
         message = json.loads(message)
         message_type = message["MessageType"]
+        self.count += 1
 
         if message_type == "PositionReport":
             # the message parameter contains a key of the message type which contains the message itself
             ais_message = message['Message']['PositionReport']
-            print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {ais_message['Latitude']} Longitude: {ais_message['Longitude']}")
+            # print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {ais_message['Latitude']} Longitude: {ais_message['Longitude']}")
+
+        if self.count % 300 == 0:
+            print(self.count)
+            print(time.time() - self.start_time)
+            self.start_time = time.time()
 
     def on_error(self, ws, error):
         print(error)
@@ -70,5 +77,5 @@ class WebSocketHandler():
         self.ws.send(json_message)
 
 if __name__ == '__main__':
-    conn = WebSocketHandler(-40,-40,-30,-30)
+    conn = WebSocketHandler(-90, -180, 90, 180)
     conn.run()
