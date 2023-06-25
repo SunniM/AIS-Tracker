@@ -1,5 +1,4 @@
-import websocket, threading, time, rel, os
-import json
+import websocket, threading, time, rel, json
 from datetime import datetime, timezone
 
 class WebSocketHandler():
