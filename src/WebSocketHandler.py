@@ -20,7 +20,9 @@ class WebSocketHandler():
     def run(self):
         # websocket.enableTrace(True)
         self.start_time = time.time()
-        self.ws.run_forever()
+        self.ws.run_forever(dispatcher=rel) # dispatcher = rel
+        rel.signal(2, rel.abort)  # Keyboard Interrupt  
+        rel.dispatch()  
 
 
 
@@ -32,7 +34,7 @@ class WebSocketHandler():
         if message_type == "PositionReport":
             # the message parameter contains a key of the message type which contains the message itself
             ais_message = message['Message']['PositionReport']
-            # print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {ais_message['Latitude']} Longitude: {ais_message['Longitude']}")
+            print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {ais_message['Latitude']} Longitude: {ais_message['Longitude']}")
 
         if self.count % 300 == 0:
             print(self.count)
