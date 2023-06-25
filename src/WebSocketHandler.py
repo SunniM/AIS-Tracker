@@ -3,7 +3,8 @@ import json
 from datetime import datetime, timezone
 
 class WebSocketHandler():
-    def __init__(self, south, west, north, east):
+    def __init__(self, queue, south, west, north, east):
+        self.queue = queue
         self.south = south
         self.west = west
         self.north = north
@@ -20,9 +21,21 @@ class WebSocketHandler():
     def run(self):
         # websocket.enableTrace(True)
         self.start_time = time.time()
+        queue_thread = threading.Thread(target=self.check_queue)
+        queue_thread.start()
+
         self.ws.run_forever(dispatcher=rel) # dispatcher = rel
         rel.signal(2, rel.abort)  # Keyboard Interrupt  
-        rel.dispatch()  
+        rel.dispatch() 
+
+    def check_queue(self):
+        while True:
+            if not self.queue.empty():
+                subscription_message = self.queue.get()
+                self.ws.send(subscription_message)
+                print("Resubscribed")
+
+        
 
 
 
@@ -77,6 +90,11 @@ class WebSocketHandler():
         subscription_message = {"APIKey": "d77b1be3c710d2d404386475ef886b33989950e3", "BoundingBoxes": [[[self.south, self.west], [self.north, self.east]]]}
         json_message = json.dumps(subscription_message)
         self.ws.send(json_message)
+
+    def make_subscription_message(south, west, north, east):
+        subscription_message = {"APIKey": "d77b1be3c710d2d404386475ef886b33989950e3", "BoundingBoxes": [[[south, west], [north, east]]]}
+        return json.dumps(subscription_message)
+
 
 if __name__ == '__main__':
     conn = WebSocketHandler(-90, -180, 90, 180)
