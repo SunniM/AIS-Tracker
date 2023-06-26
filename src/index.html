@@ -73,9 +73,10 @@
 
         // Function to handle button click
         function handleClick() {
+            const center = map.getCenter()
             const data = {
-                latitude: latitude,
-                longitude: longitude,
+                latitude: center.lat(),
+                longitude: center.lng(),
                 zoom: map.getZoom()
             };
 
