@@ -61,7 +61,6 @@ class WebSocketHandler():
         print("Connection Closed")
         print('status code: ', close_status_code)
         print('message: ', close_msg)
-        self.run()
 
 
     def on_open(self, ws):
@@ -96,5 +95,5 @@ class WebSocketHandler():
 
 
 if __name__ == '__main__':
-    conn = WebSocketHandler(-90, -180, 90, 180)
+    conn = WebSocketHandler(None, -90, -180, 90, 180)
     conn.run()
