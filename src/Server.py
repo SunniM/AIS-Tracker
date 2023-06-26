@@ -2,10 +2,10 @@ import base64
 import json
 import math
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import json, traceback, base64, math
-from tkinter import Tk, Label
-from PIL import Image, ImageTk
+import json, traceback, base64
 
+import pygame
+import events
 import Map
 
 server_address = ('localhost', 8080)
@@ -13,9 +13,10 @@ server_address = ('localhost', 8080)
 class RequestHandler(BaseHTTPRequestHandler):
 
 
-    def __init__(self, pipe, *args, **kwargs):
+    def __init__(self, pipe, image_queue, *args, **kwargs):
         self.ws_handler = None
         self.pipe = pipe
+        self.image_queue = image_queue
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
 
     # Handles get requests
@@ -50,12 +51,30 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(b'Image saved successfully')
 
     def save_image_locally(self, image_data):
+        _, image_data = image_data.split(',')
+        print(type(base64.b64decode(image_data)))
+        self.pipe.send(base64.b64decode(image_data))
+        print('bytes sent')
+
+
+    def save_image_localy(self, image_data):
         # Extract the base64-encoded image data
         _, image_data = image_data.split(',')
-
+        print(type(image_data))
+        file_written = False
         # Decode and save the image locally
-        with open('map_image.jpg', 'wb') as file:
-            file.write(base64.b64decode(image_data))
+        while not file_written:
+            try:
+                with open('map_image.jpg', 'wb') as file:
+                    file.write(base64.b64decode(image_data))
+                file_written = True
+            except:
+                pass
+        if self.image_queue:
+            image = pygame.image.load('map_image.jpg')
+            self.image_queue.put(image_data)
+            event = pygame.event.Event(events.NEW_IMAGE_EVENT)
+            pygame.event.post(event)
 
     def handle_default_post(self):
         try:
@@ -97,7 +116,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             # window.mainloop()
 
             # Printing all data
-            map.print_map_data(1920, 1080)
+            # map.print_map_data(1920, 1080)
             
 
             self.wfile.write(b'POST request received successfully')
@@ -107,8 +126,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             traceback.print_exc()
 
 # Starts server and handles communicates with controller
-def run_server(conn):
-    server = HTTPServer(server_address, lambda *args, **kwargs: RequestHandler(conn, *args, **kwargs))
+def run_server(conn=None, image_queue=None):
+    server = HTTPServer(server_address, lambda *args, **kwargs: RequestHandler(conn, image_queue, *args, **kwargs))
     print("Server started http://%s:%s" % server_address)
 
     # Serve requests until the parent process sends the termination signal
@@ -132,4 +151,4 @@ def close_server(server):
 
 
 if __name__ == '__main__':
-    run_server(None)
+    run_server()
