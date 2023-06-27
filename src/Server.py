@@ -59,12 +59,6 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b'Image saved successfully')
 
-    def save_image_localy(self, image_data):
-        _, image_data = image_data.split(',')
-        self.pipe.send(base64.b64decode(image_data))
-        print('bytes sent')
-
-
     def save_image_locally(self, image_data):
         # Extract the base64-encoded image data
         _, image_data = image_data.split(',')
@@ -95,29 +89,6 @@ class RequestHandler(BaseHTTPRequestHandler):
 
             if self.pipe:
                 self.pipe.send(map)
-
-          
-            # # Create the main window
-            # window = Tk()
-
-            # # Set the window title
-            # window.title("Image Background Example")
-
-            # # Set the window size
-            # window.geometry("1920x1080")
-
-            # # Load the image
-            # image = Image.open("map_image.jpg")
-            # background_image = ImageTk.PhotoImage(image)
-
-            # # Create a label with the image as the background
-            # background_label = Label(window, image=background_image)
-            # background_label.place(x=0, y=0, relwidth=1, relheight=1)
-
-            # # Add other widgets or perform other operations on the window
-
-            # # Start the main event loop
-            # window.mainloop()
 
             # Printing all data
             # map.print_map_data(1920, 1080)
