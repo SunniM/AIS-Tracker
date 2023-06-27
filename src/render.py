@@ -3,6 +3,15 @@ from io import BytesIO
 
 import events
 
+
+# TODO: convert to class MAYBE
+class Renderer():
+    def __init__(self, width, height, event_queue):
+        self.width = width
+        self.height = height
+        self.image_queue = t
+        self.queue_thread = threading.Thread(target=self.check_queue)
+
 def check_queue(image_queue):
     while True:
         image = image_queue.get()
