@@ -4,15 +4,10 @@ import traceback
 import multiprocessing as mp
 import pygame, traceback
 
-import Server, WebSocketHandler, render, events
-
-
-import Server, Map
+import Server, events
 from WebSocketHandler import WebSocketHandler
+from Renderer import Renderer
 
-
-import Server, Map
-from WebSocketHandler import WebSocketHandler
 
 
 server_address = ('localhost', 8080)
@@ -25,6 +20,8 @@ def main():
     ws_handler = None
     ws_process = None
     ws_queue = mp.Queue()
+
+    renderer = Renderer(1920, 1080, image_queue)
     window_process = mp.Process(target=render.render, args=(1920, 1080, image_queue))
     window_process.start()
 
@@ -49,7 +46,7 @@ def main():
                 south, west, north, east = data.calculate_bounding_box(
                     1980, 1080)
                 # starts websocket connection
-                # ws_handler = WebSocketHandler.WebSocketHandler(south, west, north, east)
+                # ws_handler = WebSocketHandler(south, west, north, east)
                 # ws_handler.start()
                 if not window_process.is_alive():
                     window_process.start()
