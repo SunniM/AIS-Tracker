@@ -2,9 +2,7 @@
 import Map
 import traceback
 import multiprocessing as mp
-from tkinter import Tk, Label
-from PIL import Image, ImageTk
-import pygame
+import pygame, traceback
 
 import Server, WebSocketHandler, render, events
 
@@ -40,49 +38,28 @@ def main():
             data = controller_pipe.recv()
             print('data received')
 
-
-            # parses message
-            match type(data):
-
-                # received a map object
-                case Map.Map:
-                    print("Map Recieved")
-
-                    # gets bounding box
-                    south, west, north, east = data.calculate_bounding_box(1920,1080)
-                    
-                    # checks for exisring websocket connection
-                    if ws_handler and ws_process.is_alive():
-
-                        # resend existing connection
-                        try:
-                            message = WebSocketHandler.make_subscription_message(south, west, north, east)
-                            ws_queue.put(message)
-                            print('Resubsribe Sent to Websocket')
-                        except:
-                            traceback.print_exc()
-                            print("resubscribe failed")
-
-                    # starts websocket connection
-                    ws_handler = WebSocketHandler(south, west, north, east, ws_queue)
-                    ws_process = mp.Process(target=ws_handler.run)
-                    while not ws_process.is_alive():
-                        ws_process.start()
-                  
-                    if not window_process.is_alive():
-                        window_process.start()
-                        window_process.join()
-                case bytes:
-                    print('bytes received')
-                    image_queue.put(data)
-                    event = pygame.event.Event(events.NEW_IMAGE_EVENT)
-                    if not window_process.is_alive():
-                        window_process.start()
-                        window_process.join()
-                    else:
-                        pygame.event.post(event)
-
-
+            if isinstance(data, Map.Map):
+                print("Map Recieved")
+                # checks for exisring websocket connection
+                if ws_handler:
+                    # closes existing connection
+                    ws_handler.close_connection()
+                    ws_handler.join()
+                # gets bounding box
+                south, west, north, east = data.calculate_bounding_box(
+                    1980, 1080)
+                # starts websocket connection
+                # ws_handler = WebSocketHandler.WebSocketHandler(south, west, north, east)
+                # ws_handler.start()
+                if not window_process.is_alive():
+                    window_process.start()
+                    window_process.join()
+            elif isinstance(data, bytes):
+                print('Bytes received')
+                image_queue.put(data)
+            
+            elif isinstance(data, str):
+                pass
 
 if __name__ == '__main__':
     try:
