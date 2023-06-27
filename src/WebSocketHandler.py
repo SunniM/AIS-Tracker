@@ -2,7 +2,7 @@ import websocket, threading, time, rel, json
 from datetime import datetime, timezone
 
 class WebSocketHandler():
-    def __init__(self, queue, south, west, north, east):
+    def __init__(self, south, west, north, east, queue=None):
         self.queue = queue
         self.south = south
         self.west = west
