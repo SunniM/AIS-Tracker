@@ -50,17 +50,15 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b'Image saved successfully')
 
-    def save_image_locally(self, image_data):
+    def save_image_localy(self, image_data):
         _, image_data = image_data.split(',')
-        print(type(base64.b64decode(image_data)))
         self.pipe.send(base64.b64decode(image_data))
         print('bytes sent')
 
 
-    def save_image_localy(self, image_data):
+    def save_image_locally(self, image_data):
         # Extract the base64-encoded image data
         _, image_data = image_data.split(',')
-        print(type(image_data))
         file_written = False
         # Decode and save the image locally
         while not file_written:
@@ -70,11 +68,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 file_written = True
             except:
                 pass
-        if self.image_queue:
-            image = pygame.image.load('map_image.jpg')
-            self.image_queue.put(image_data)
-            event = pygame.event.Event(events.NEW_IMAGE_EVENT)
-            pygame.event.post(event)
+        self.pipe.send(base64.b64decode(image_data))
+        print('bytes sent')
 
     def handle_default_post(self):
         try:
