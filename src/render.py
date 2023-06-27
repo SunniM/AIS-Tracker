@@ -1,11 +1,22 @@
-import pygame
+import pygame, threading
 from io import BytesIO
 
 import events
+
+def check_queue(image_queue):
+    while True:
+        image = image_queue.get()
+        event = pygame.event.Event(events.NEW_IMAGE_EVENT, {"image":BytesIO(image), "name_hint":'jpg'})
+        pygame.event.post(event)
+
 def render(width, height, image_queue=None):
 
+    queue_thread = threading.Thread(target=check_queue, args=(image_queue,))
+
     image = pygame.image.load("map_image.jpg")
-    # pygame.init()
+    pygame.init()
+    queue_thread.start()
+
     print('video system intiailzed')
     screen = pygame.display.set_mode((width, height))
     clock = pygame.time.Clock()
@@ -15,16 +26,13 @@ def render(width, height, image_queue=None):
     while running:
 
         for event in pygame.event.get():
-            print(event)
             match event.type:
                 case pygame.QUIT:
                     running = False
                 case events.NEW_IMAGE_EVENT:
                     print('new_image_recieved')
                     if image_queue:
-                        image = pygame.image.frombytes(image_queue.get())
-                        
-
+                        image = pygame.image.load(event.image)
         screen.fill((0, 0, 0))  # Clear the screen
 
         # Load the current image based on the current_image_index
