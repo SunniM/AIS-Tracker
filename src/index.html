@@ -15,6 +15,7 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
         var map; // Declare the map variable
+        var imageData;
 
         function loadMap() {
             var mapOptions = {
@@ -70,6 +71,11 @@
             // Add event listeners to latitude and longitude input fields
             document.getElementById('latitude-input').addEventListener('input', handleLatitudeChange);
             document.getElementById('longitude-input').addEventListener('input', handleLongitudeChange);
+            // Capture the map image using html2canvas
+            html2canvas(document.getElementById("sample")).then(function (canvas) {
+                // Convert the canvas to a data URL (base64-encoded)
+                imageData = canvas.toDataURL();
+            });
 
             // Listen for 'dragend' event on the map
             map.addListener('dragend', handleMapDrag);
@@ -98,8 +104,20 @@
                 },
                 body: JSON.stringify(data)
             });
-
-        }
+            fetch('http://localhost:8080/save-image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image: imageData
+                })
+            }).then(function (response) {
+                console.log("Map image saved successfully");
+            }).catch(function (error) {
+                console.error("Error saving map image:", error);
+            });
+        };
     </script>
 </head>
 
