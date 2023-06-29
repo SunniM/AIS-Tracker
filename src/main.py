@@ -1,4 +1,6 @@
 
+import multiprocessing as mp
+
 import Map
 import traceback
 import multiprocessing as mp
@@ -7,6 +9,8 @@ import pygame, traceback
 import Server, events
 from WebSocketHandler import WebSocketHandler
 from Renderer import Renderer
+import Server
+from WebSocketHandler import WebSocketHandler
 
 
 
@@ -22,7 +26,7 @@ def main():
     ws_queue = mp.Queue()
 
     renderer = Renderer(1920, 1080, image_queue)
-    window_process = mp.Process(target=render.render, args=(1920, 1080, image_queue))
+    window_process = mp.Process(target=renderer.render, args=(1920, 1080, image_queue))
     window_process.start()
 
     # Starting local webserver
@@ -34,7 +38,10 @@ def main():
         if controller_pipe.poll():
             data = controller_pipe.recv()
             print('data received')
-
+            if not window_process.is_alive():
+                window_process.join()
+                window_process = mp.Process(target=renderer.render)
+                window_process.start()
             if isinstance(data, Map.Map):
                 print("Map Recieved")
                 # checks for exisring websocket connection
@@ -48,9 +55,7 @@ def main():
                 # starts websocket connection
                 # ws_handler = WebSocketHandler(south, west, north, east)
                 # ws_handler.start()
-                if not window_process.is_alive():
-                    window_process.start()
-                    window_process.join()
+
             elif isinstance(data, bytes):
                 print('Bytes received')
                 image_queue.put(data)
