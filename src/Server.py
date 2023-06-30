@@ -1,8 +1,8 @@
+import base64
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import json, traceback, base64
+import json
+import traceback
 
-import pygame
-import events
 import Map
 
 earthCir = 40075016.686
@@ -66,7 +66,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         # Decode and save the image locally
         while not file_written:
             try:
-                with open('map_image.jpg', 'wb') as file:
+                with open('map_image.png', 'wb') as file:
                     file.write(base64.b64decode(image_data))
                 file_written = True
             except:
