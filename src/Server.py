@@ -1,8 +1,6 @@
-import base64
-import json
-import math
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import json, traceback, base64
+import json
+import traceback, base64
 
 import pygame
 import events
@@ -12,8 +10,7 @@ server_address = ('localhost', 8080)
 
 class RequestHandler(BaseHTTPRequestHandler):
 
-
-    def __init__(self, pipe, image_queue, *args, **kwargs):
+    def __init__(self, pipe, *args, **kwargs):
         self.ws_handler = None
         self.pipe = pipe
         self.image_queue = image_queue
@@ -30,46 +27,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     # Handles post requests
     def do_POST(self):
-        if self.path == '/save-image':
-            self.save_image()
-        else:
-            self.handle_default_post()
-
-    def save_image(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        data = json.loads(post_data)
-        if 'image' in data:
-            # Save the image locally
-            self.save_image_locally(data['image'])
-
-        # Send the response
-        self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
-        self.end_headers()
-        self.wfile.write(b'Image saved successfully')
-
-    def save_image_locally(self, image_data):
-        # Extract the base64-encoded image data
-        _, image_data = image_data.split(',')
-        print(image_data)
-        file_written = False
-        # Decode and save the image locally
-        while not file_written:
-            try:
-                with open('map_image.png', 'wb') as file:
-                    file.write(base64.b64decode(image_data))
-                file_written = True
-            except Exception as e:
-                print(e)
-        if self.pipe:
-            self.pipe.send(base64.b64decode(image_data))
-        print('bytes sent')
-
-    def handle_default_post(self):
         try:
-            self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
+            self.send_response(301)
+            self.send_header('Content-Type', 'text/html')
             self.end_headers()
 
             content_length = int(self.headers['Content-Length'])

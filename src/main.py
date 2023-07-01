@@ -5,7 +5,6 @@ from Renderer import Renderer
 import Server
 from WebSocketHandler import WebSocketHandler
 
-
 server_address = ('localhost', 8080)
 
 def main():
