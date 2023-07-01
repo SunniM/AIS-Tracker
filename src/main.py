@@ -39,7 +39,7 @@ def main():
                 # checks for exisring websocket connection
                 south, west, north, east = data.calculate_bounding_box(1920, 1080)
                 if ws_process:
-                    subscription_message = ws_handler.make_subscription_message(south, west, north, east)
+                    subscription_message = WebSocketHandler.make_subscription_message(south, west, north, east)
                     ws_queue.put(subscription_message)      
                 else:
                     # starts websocket connection
