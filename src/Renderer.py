@@ -7,7 +7,7 @@ import threading
 import events
 
 class Renderer:
-    def __init__(self, width, height, image_queue=None):
+    def __init__(self, width, height, image_queue=None, fullscreen=False):
 
         self.running = True
 
@@ -20,6 +20,10 @@ class Renderer:
         self.image_queue = image_queue
     
         self.queue_thread = None
+        self.fullscreen = 0
+        if fullscreen:
+            self.fullscreen = pygame.FULLSCREEN
+        
 
     def _check_queue(self):
         while self.running:
@@ -46,11 +50,17 @@ class Renderer:
         # Set the alpha channel to 0 where the mask is True
         cv_image[:, :, 3][mask] = 0
 
-        self.image = pygame.image.frombuffer(cv_image.tobytes(), cv_image.shape[1::-1],"RGBA")
+        cv2.imwrite("assets/map_mask.png", cv_image)
+
+        self.image = pygame.image.frombuffer(cv_image.tobytes(), cv_image.shape[1::-1],"BGRA")
 
     def render(self):
         pygame.init()
-        screen = pygame.display.set_mode((self.width, self.height))
+        print(pygame.display.Info())
+
+        screen = pygame.display.set_mode((self.width, self.height), flags=self.fullscreen)
+
+
         clock = pygame.time.Clock()
 
 
@@ -105,6 +115,8 @@ class Renderer:
 
 
 if __name__ == '__main__':
-    render = Renderer(1280, 720)
+
+    # for full screen add kwarg: fullscreen=True
+    render = Renderer(1920, 1080)
     render.render()
 

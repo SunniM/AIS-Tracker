@@ -66,7 +66,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         # Decode and save the image locally
         while not file_written:
             try:
-                with open('map_image.png', 'wb') as file:
+                with open('assets/map_image.png', 'wb') as file:
                     file.write(base64.b64decode(image_data))
                 file_written = True
             except:
