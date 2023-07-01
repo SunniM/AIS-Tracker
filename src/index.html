@@ -4,98 +4,93 @@
 <head>
     <script src="https://maps.googleapis.com/maps/api/js"></script>
     <script>
+        var map; // Declare the map variable
+
         function loadMap() {
             var mapOptions = {
                 mapId: 'a9e21ced58ad4189',
                 center: new google.maps.LatLng(45.3, -84),
                 zoom: 7,
-                mapTypeId: google.maps.MapTypeId.ROADMAP,
-                disableDefaultUI: true
+
             };
-            var map = new google.maps.Map(document.getElementById("sample"), mapOptions);
-        
+            map = new google.maps.Map(document.getElementById("sample"), mapOptions); // Create the map object
+
             // Function to update text fields with current coordinates
             function updateTextFields(latitude, longitude) {
                 const latitudeInput = document.getElementById('latitude-input');
                 const longitudeInput = document.getElementById('longitude-input');
-            
+
                 latitudeInput.value = latitude.toFixed(3);
                 longitudeInput.value = longitude.toFixed(3);
             }
-        
-            // Add an event listener to retrieve the coordinates
-            map.addListener('idle', function() {
+
+            // Function to handle latitude input change
+            function handleLatitudeChange() {
+                const latitude = parseFloat(document.getElementById('latitude-input').value);
+
+                if (!isNaN(latitude)) {
+                    const center = map.getCenter();
+                    const longitude = center.lng();
+
+                    map.setCenter({ lat: latitude, lng: longitude });
+                }
+            }
+
+            // Function to handle longitude input change
+            function handleLongitudeChange() {
+                const longitude = parseFloat(document.getElementById('longitude-input').value);
+
+                if (!isNaN(longitude)) {
+                    const center = map.getCenter();
+                    const latitude = center.lat();
+
+                    map.setCenter({ lat: latitude, lng: longitude });
+                }
+            }
+
+            // Function to handle map drag event
+            function handleMapDrag() {
                 const center = map.getCenter();
                 const latitude = center.lat();
                 const longitude = center.lng();
-                const zoom = map.getZoom();
-        
-                // Create the data object with the coordinates
-                const data = {
-                    latitude: latitude,
-                    longitude: longitude,
-                    zoom: zoom
-                };
-        
-                // Send the POST request
-                fetch('http://localhost:8080', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-        
-                // Update the text fields with the current coordinates
+
                 updateTextFields(latitude, longitude);
-            });
-        
-            // Function to handle button click
-            function handleClick() {
-                const latitudeInput = document.getElementById('latitude-input');
-                const longitudeInput = document.getElementById('longitude-input');
-        
-                // Get the values from the input fields
-                const latitude = parseFloat(latitudeInput.value);
-                const longitude = parseFloat(longitudeInput.value);
-        
-                // Check if the values are valid numbers
-                if (!isNaN(latitude) && !isNaN(longitude)) {
-                    // Set the map center to the input values
-                    map.setCenter({ lat: latitude, lng: longitude });
-        
-                    // Update the data object with the new coordinates
-                    const data = {
-                        latitude: latitude,
-                        longitude: longitude,
-                        zoom: map.getZoom()
-                    };
-        
-                    // Send the POST request
-                    fetch('http://localhost:8080', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    });
-                } else {
-                    alert('Please enter valid coordinates.');
-                }
             }
-        
-            // Add a button click event listener
-            document.getElementById('update-button').addEventListener('click', handleClick);
-        
+
+            // Add event listeners to latitude and longitude input fields
+            document.getElementById('latitude-input').addEventListener('input', handleLatitudeChange);
+            document.getElementById('longitude-input').addEventListener('input', handleLongitudeChange);
+
+            // Listen for 'dragend' event on the map
+            map.addListener('dragend', handleMapDrag);
+
             // Get the initial coordinates and update the text fields
             const initialCenter = map.getCenter();
             const initialLatitude = initialCenter.lat();
             const initialLongitude = initialCenter.lng();
             updateTextFields(initialLatitude, initialLongitude);
         }
-        
-    </script>
 
+        // Function to handle button click
+        function handleClick() {
+            const center = map.getCenter()
+            const data = {
+                latitude: center.lat(),
+                longitude: center.lng(),
+                zoom: map.getZoom()
+            };
+
+            // Send the POST request
+            fetch('http://localhost:8080', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+        }
+    </script>
 </head>
 
 <body onload="loadMap()">
@@ -105,7 +100,7 @@
         <input type="text" id="latitude-input">
         <label for="longitude-input">Longitude:</label>
         <input type="text" id="longitude-input">
-        <button id="update-button">Update Map</button>
+        <button id="update-button" onclick="handleClick()">Update Map</button>
     </div>
 </body>
 
