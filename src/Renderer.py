@@ -28,13 +28,13 @@ class Renderer:
                 event = pygame.event.Event(events.NEW_IMAGE_EVENT, {"image": image, "name_hint": 'png'})
                 pygame.event.post(event)
             except Empty:
-                print('Empty')
+                pass
 
 
     def _mask_image(self, buffer=None):
         # Read the PNG image with alpha channel included
         if not self.image and not buffer:
-            cv_image = cv2.imread('map_image.png', cv2.IMREAD_UNCHANGED)
+            cv_image = cv2.imread('assets/map_image.png', cv2.IMREAD_UNCHANGED)
         else:
             nparr = np.fromstring(buffer, np.uint8)
 
@@ -54,7 +54,7 @@ class Renderer:
         clock = pygame.time.Clock()
 
 
-        self.video = cv2.VideoCapture("water.mp4")
+        self.video = cv2.VideoCapture("assets/water.mp4")
         # self.image = pygame.image.load("map_image.png").convert_alpha()
         self._mask_image()
 
