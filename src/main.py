@@ -42,6 +42,7 @@ def main():
                 window_process.join()
                 window_process = mp.Process(target=renderer.render)
                 window_process.start()
+                
             if isinstance(data, Map.Map):
                 print("Map Recieved")
                 # checks for exisring websocket connection
@@ -51,7 +52,7 @@ def main():
                     ws_handler.join()
                 # gets bounding box
                 south, west, north, east = data.calculate_bounding_box(
-                    1980, 1080)
+                    1920, 1080)
                 # starts websocket connection
                 # ws_handler = WebSocketHandler(south, west, north, east)
                 # ws_handler.start()
