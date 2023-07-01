@@ -51,10 +51,6 @@ class WebSocketHandler():
             width = 1920
             height = 1080
             
-            print(f"West {self.west}")
-            print(f"South {self.south}")
-            print(f"East {self.east}")
-            print(f"North {self.north}")
             #0,0 is north west of the bounding box
             #calculating a ratio for the x and y pixel based on size of the window
             x = int(width * (Longitude - self.west) / (self.east - self.west))

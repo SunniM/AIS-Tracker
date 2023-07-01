@@ -33,7 +33,7 @@ def main():
                     print("Map Recieved")
 
                     # gets bounding box
-                    south, west, north, east = data.calculate_bounding_box(1980,1080)
+                    south, west, north, east = data.calculate_bounding_box(1920,1080)
                     
                     # checks for exisring websocket connection
                     if ws_handler and ws_process.is_alive():
