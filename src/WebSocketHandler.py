@@ -49,8 +49,8 @@ class WebSocketHandler():
             
             #0,0 is north west of the bounding box
             #calculating a ratio for the x and y pixel based on size of the window
-            x = int(width * (Longitude - self.west) / (self.east - self.west))
-            y = int(height * (self.north - Latitude) / (self.north - self.south))
+            x = int(width * abs((Longitude - self.west) / (self.east - self.west)))
+            y = int(height * abs((self.north - Latitude) / (self.north - self.south)))
  
             # end of should be in a methode, but wasn't able to get it working
             
