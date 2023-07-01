@@ -19,7 +19,7 @@ class Renderer:
 
     async def check_queue_async(self):
         while True:
-            image = await self.image_queue.get()
+            image = await self.image_queue.get_nowait()
             print('image received')
             event = pygame.event.Event(events.NEW_IMAGE_EVENT, {"image": BytesIO(image), "name_hint": 'jpg'})
             pygame.event.post(event)

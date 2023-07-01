@@ -39,7 +39,6 @@ class RequestHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         data = json.loads(post_data)
-
         if 'image' in data:
             # Save the image locally
             self.save_image_locally(data['image'])
@@ -53,16 +52,18 @@ class RequestHandler(BaseHTTPRequestHandler):
     def save_image_locally(self, image_data):
         # Extract the base64-encoded image data
         _, image_data = image_data.split(',')
+        print(image_data)
         file_written = False
         # Decode and save the image locally
         while not file_written:
             try:
-                with open('map_image.jpg', 'wb') as file:
+                with open('map_image.png', 'wb') as file:
                     file.write(base64.b64decode(image_data))
                 file_written = True
-            except:
-                pass
-        self.pipe.send(base64.b64decode(image_data))
+            except Exception as e:
+                print(e)
+        if self.pipe:
+            self.pipe.send(base64.b64decode(image_data))
         print('bytes sent')
 
     def handle_default_post(self):

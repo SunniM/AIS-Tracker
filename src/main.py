@@ -1,17 +1,9 @@
-
 import multiprocessing as mp
 
 import Map
-import traceback
-import multiprocessing as mp
-import pygame, traceback
-
-import Server, events
-from WebSocketHandler import WebSocketHandler
 from Renderer import Renderer
 import Server
 from WebSocketHandler import WebSocketHandler
-
 
 
 server_address = ('localhost', 8080)
@@ -26,7 +18,7 @@ def main():
     ws_queue = mp.Queue()
 
     renderer = Renderer(1920, 1080, image_queue)
-    window_process = mp.Process(target=renderer.render, args=(1920, 1080, image_queue))
+    window_process = mp.Process(target=renderer.render)
     window_process.start()
 
     # Starting local webserver
