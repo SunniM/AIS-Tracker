@@ -37,16 +37,15 @@ def main():
             if isinstance(data, Map.Map):
                 print("Map Recieved")
                 # checks for exisring websocket connection
-                if ws_handler:
-                    # closes existing connection
-                    ws_handler.close_connection()
-                    ws_handler.join()
-                # gets bounding box
-                south, west, north, east = data.calculate_bounding_box(
-                    1920, 1080)
-                # starts websocket connection
-                # ws_handler = WebSocketHandler(south, west, north, east)
-                # ws_handler.start()
+                south, west, north, east = data.calculate_bounding_box(1920, 1080)
+                if ws_process:
+                    subscription_message = WebSocketHandler.make_subscription_message(south, west, north, east)
+                    ws_queue.put(subscription_message)      
+                else:
+                    # starts websocket connection
+                    ws_handler = WebSocketHandler(south, west, north, east, ws_queue)
+                    ws_process = mp.Process(target=ws_handler.run)
+                    ws_process.start()
 
             elif isinstance(data, bytes):
                 print('Bytes received')

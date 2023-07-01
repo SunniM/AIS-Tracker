@@ -14,12 +14,9 @@ class WebSocketHandler():
                                      on_error=self.on_error,
                                      on_close=self.on_close,
                                      )
-        self.count = 0
-        self.start_time = time.time()
         
     def run(self):
         # websocket.enableTrace(True)
-        self.start_time = time.time()
         queue_thread = threading.Thread(target=self.check_queue)
         queue_thread.start()
 
@@ -38,7 +35,6 @@ class WebSocketHandler():
     def on_message(self, ws, message):
         message = json.loads(message)
         message_type = message["MessageType"]
-        self.count += 1
 
         if message_type == "PositionReport":
             # the message parameter contains a key of the message type which contains the message itself
@@ -59,11 +55,6 @@ class WebSocketHandler():
             # end of should be in a methode, but wasn't able to get it working
             
             print(f"[{datetime.now(timezone.utc)}] ShipId: {ais_message['UserID']} Latitude: {Latitude} Longitude: {Longitude} x Pixel: {x} y Pixel: {y}")
-
-        if self.count % 300 == 0:
-            print(self.count)
-            print(time.time() - self.start_time)
-            self.start_time = time.time()
 
     def on_error(self, ws, error):
         print(error)
