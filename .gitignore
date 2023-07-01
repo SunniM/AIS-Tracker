@@ -1,3 +1,9 @@
+# Config Files
 .vscode
-*.json
 __pycache__
+*.pyc
+# Runtime Files
+*.png
+*.jpg
+*.json
+*.mp4
