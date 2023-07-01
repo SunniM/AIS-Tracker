@@ -48,7 +48,7 @@ def generate_dxf_from_contours(contours, width, height, output_file, min_contour
     doc.saveas(output_file)
 
 # Load the image
-image = cv2.imread('d:\Programming Projects\C++\AIS Tracker\AIS-Tracker\src\map_image.png', cv2.IMREAD_UNCHANGED)
+image = cv2.imread('assets\map_mask.png', cv2.IMREAD_UNCHANGED)
 
 # Convert img to gray
 img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
