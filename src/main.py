@@ -48,7 +48,7 @@ def main():
                             print("resubscribe failed")
 
                     # starts websocket connection
-                    ws_handler = WebSocketHandler(ws_queue, south, west, north, east)
+                    ws_handler = WebSocketHandler(south, west, north, east, ws_queue)
                     ws_process = mp.Process(target=ws_handler.run)
                     while not ws_process.is_alive():
                         ws_process.start()
