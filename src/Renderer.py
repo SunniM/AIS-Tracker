@@ -8,9 +8,10 @@ import threading
 
 import events
 
+
 class Renderer:
     def __init__(self, width, height, message_queue=None, fullscreen=False):
-        
+
         self.ship_list = {}
 
         self.running = True
@@ -31,7 +32,6 @@ class Renderer:
                 message_type = message["message_type"]
                 message = message["message"]
 
-
                 if message_type == "image":
                     event = pygame.event.Event(events.NEW_IMAGE_EVENT, {"image": message['image_data'], "name_hint": 'png'})
                     pygame.event.post(event)
@@ -41,7 +41,6 @@ class Renderer:
                         print(ship_item)
                         self.ship_list.update(ship_item)
                 elif message_type == "clear_list":
-                    print("Resub")
                     with self.ship_list_lock:
                         self.ship_list = {}
 
@@ -56,13 +55,14 @@ class Renderer:
             nparr = np.fromstring(base64.b64decode(buffer), np.uint8)
             cv_image = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
 
-
-        mask = np.logical_and(cv_image[:, :, 0] > 90, np.logical_and(cv_image[:, :, 1] < 100, cv_image[:, :, 2] < 100))
+        mask = np.logical_and(cv_image[:, :, 0] > 90, np.logical_and(
+            cv_image[:, :, 1] < 100, cv_image[:, :, 2] < 100))
         cv_image[:, :, 3][mask] = 0
 
         cv2.imwrite("assets/map_mask.png", cv_image)
 
-        self.image = pygame.image.frombuffer(cv_image.tobytes(), cv_image.shape[1::-1], "BGRA")
+        self.image = pygame.image.frombuffer(
+            cv_image.tobytes(), cv_image.shape[1::-1], "BGRA")
         print("image masked")
 
     def render(self):
@@ -71,9 +71,11 @@ class Renderer:
         # Lock for accessing the ship list
         self.ship_list_lock = threading.Lock()
 
-        screen = pygame.display.set_mode((self.width, self.height), flags=self.fullscreen)
+        screen = pygame.display.set_mode(
+            (self.width, self.height), flags=self.fullscreen)
         clock = pygame.time.Clock()
 
+        boat_img = pygame.image.load("assets/boat.png")
         self.video = cv2.VideoCapture("assets/water.mp4")
         self._mask_image()
 
@@ -108,19 +110,23 @@ class Renderer:
             with self.ship_list_lock:
                 ship_list_copy = self.ship_list.copy()  # Make a local copy of the ship list
 
-            box_width = 10
-            for x, y in ship_list_copy.values():
-                rect = pygame.Rect(x-(box_width//2), y-(box_width//2), 10, 10)
-                pygame.draw.rect(screen, (255, 0, 0), rect)
-        
-            # Calculate the position to center the image
+                # Calculate the position to center the image
             image_rect = self.image.get_rect()
             x = (self.width - image_rect.width) // 2
             y = (self.height - image_rect.height) // 2
 
             # Blit the image at the calculated position
             screen.blit(self.image, (x, y))
-    
+
+            box_width = 11
+            for x, y in ship_list_copy.values():
+                screen.blit(boat_img, [x, y])
+
+            # box_width = 10
+            # for x, y in ship_list_copy.values():
+            #     rect = pygame.Rect(x-(box_width//2), y-(box_width//2), 10, 10)
+            #     pygame.draw.rect(screen, (255, 0, 0), rect)
+
             pygame.display.flip()
             clock.tick(fps)
 
