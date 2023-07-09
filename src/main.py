@@ -4,7 +4,7 @@ import os
 import Map
 from Renderer import Renderer
 import Server
-from WebSocketHandler import WebSocketHandler
+from WebSocketHandler import WebSocketHandler, make_subscription_message
 
 server_address = ('localhost', 8080)
 
@@ -40,10 +40,11 @@ def main():
             if isinstance(data, Map.Map):
                 print("Map Recieved")
                 # checks for existing websocket connection
+                data.print_map_data()
                 south, west, north, east = data.calculate_bounding_box()
 
                 if ws_process:
-                    subscription_message = WebSocketHandler.make_subscription_message(south, west, north, east)
+                    subscription_message = make_subscription_message(south, west, north, east)
                     resub_queue.put(subscription_message)      
                 else:
                     # starts websocket connection
