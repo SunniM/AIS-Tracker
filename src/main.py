@@ -23,7 +23,7 @@ def main():
     ws_process = None
 
     # Initialize renderer
-    renderer = Renderer(1920, 1080, event_queue)
+    renderer = Renderer(1920, 1080, event_queue, fullscreen=False)
     window_process = mp.Process(target=renderer.render)
 
 
