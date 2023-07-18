@@ -1,0 +1,40 @@
+body {
+  background-color: lightgrey;
+  font-family: "Arial Black", Helvetica, sans-serif;
+  font-size: 16;
+  color: black;
+}
+
+#aspectRatioContainer {
+  position: relative;
+  width: 100%;
+}
+
+#aspectRatioContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#aspectRatioContainer:before {
+  content: "";
+  display: block;
+  padding-top: calc(100% / 16 * 9);
+  /* Default aspect ratio of 16:9 */
+}
+
+.aspect-ratio-4-3 #aspectRatioContainer:before {
+  padding-top: calc(100% / 4 * 3);
+}
+
+.aspect-ratio-3-2 #aspectRatioContainer:before {
+  padding-top: calc(100% / 3 * 2);
+}
+
+#map {
+  width: 75%;  
+  aspect-ratio: 16/9;
+
+}

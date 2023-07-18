@@ -1,6 +1,7 @@
 import base64
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
+import os
 import traceback
 
 import Map
@@ -18,9 +19,19 @@ map_id = 'YOUR_MAP_ID'  # Specific map ID
 server_address = ('localhost', 8080)
 
 
-
 class RequestHandler(BaseHTTPRequestHandler):
+    TEXTUAL_CONTENT_TYPES = {   
+        '.html': 'text/html',
+        '.css': 'text/css',
+        '.js': 'application/javascript'
+    }
 
+    VISUAL_CONTENT_TYPES ={
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.ico': 'image/x-icon'
+    }
 
     def __init__(self, pipe, event_queue, *args, **kwargs):
         self.ws_handler = None
@@ -28,14 +39,76 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.event_queue = event_queue
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
     
-    # Handles get requests
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
+    def get_content_type(self, filename):
+        _, file_extension = os.path.splitext(filename)
+        if file_extension in ['.html']:
+            return "text/html"
+        elif file_extension in ['.css']:
+            return "text/css"
+        elif file_extension in ['.js']:
+            return "text/javascript"
+        elif file_extension in ['.jpg', '.jpeg']:
+            return "image/jpeg"
+        elif file_extension == '.png':
+            return "image/png"
+        elif file_extension == '.ico':
+            return "image/x-icon"
+        else:
+            return "application/octet-stream"  # Fallback content type for other file types
 
-        f = open('src/index.html').read()
-        self.wfile.write(bytes(f, 'utf-8'))
+    def do_GET(self):
+        try:
+            # Get the file path from the URL
+            file_path = 'public'
+            file_path += "/index.html" if self.path == "/" else self.path
+            print(file_path)
+            # Check if the file exists
+            if os.path.exists(file_path):
+                # Determine the file extension
+                _, file_extension = os.path.splitext(file_path)
+                
+                self.send_response(200)
+                # Check if the file extension is supported
+                if file_extension in self.VISUAL_CONTENT_TYPES:
+                    # Set the content type header based on the file extension
+                    self.send_header('Content-type', self.VISUAL_CONTENT_TYPES[file_extension])
+                    self.end_headers()
+
+                    # Open and send the file
+                    with open(file_path, 'rb') as file:
+                        self.wfile.write(file.read())
+                elif file_extension in self.TEXTUAL_CONTENT_TYPES:
+                    self.send_header('Content-type', self.TEXTUAL_CONTENT_TYPES[file_extension])
+                    self.end_headers()
+
+                    # Open and send the file
+                    with open(file_path, 'r') as file:
+                        file_contents = file.read()
+                        self.wfile.write(bytes(file_contents, 'utf-8'))
+                else:
+                    # If the file extension is not supported, return a 415 Unsupported Media Type response
+                    self.send_error(415, 'Unsupported Media Type')
+            else:
+                # If the file doesn't exist, return a 404 Not Found response
+                self.send_error(404, 'File Not Found')
+        except Exception as e:
+            # Handle any other exceptions that may occur during processing
+            self.send_error(500, str(e))    
+    
+    # # Handles get requests
+    # def do_GET(self):
+
+    #     filename = "/index.html" if self.path == "/" else self.path
+    #     try:
+    #         with open(f"public{filename}") as f:
+    #             self.send_response(200)
+    #             self.send_header("Content-type", self.get_content_type(filename))
+    #             self.end_headers()
+    #             self.wfile.write(f.read())
+    #     except:
+    #         self.send_response(404)
+    #         self.end_headers()
+    #         traceback.print_exc()            
 
     # Handles post requests
     def do_POST(self):
@@ -43,6 +116,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.save_image()
         else:
             self.handle_default_post()
+
 
     def save_image(self):
         content_length = int(self.headers['Content-Length'])
