@@ -3,8 +3,7 @@
 __pycache__
 *.pyc
 # Runtime Files
-*.png
-*.jpg
+map_image.png
+map_mask.png
 *.json
-*.mp4
 *.dxf
