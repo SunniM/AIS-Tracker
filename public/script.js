@@ -11,12 +11,14 @@ function loadMap() {
   map = new google.maps.Map(document.getElementById("map"), mapOptions); // Create the map object
 
   // Function to update text fields with current coordinates
-  function updateTextFields(latitude, longitude) {
+  function updateTextFields(latitude, longitude, zoom) {
     const latitudeInput = document.getElementById('latitude-input');
     const longitudeInput = document.getElementById('longitude-input');
+    const zoomInput = document.getElementById('zoom-input')
 
     latitudeInput.value = latitude.toFixed(3);
     longitudeInput.value = longitude.toFixed(3);
+    zoomInput.value = zoom
   }
 
   // Function to handle latitude input change
@@ -43,27 +45,43 @@ function loadMap() {
     }
   }
 
+  function handleZoomChange() {
+    const zoom = parseFloat(document.getElementById('zoom-input').value)
+    
+    if (!isNaN(zoom)) {
+      console.log(zoom)
+      map.setZoom(zoom);
+    }
+    else {
+      console.log("Invalid zoom value:", zoom);
+    }
+  }
+
   // Function to handle map drag event
-  function handleMapDrag() {
+  function handleMapChange() {
     const center = map.getCenter();
     const latitude = center.lat();
     const longitude = center.lng();
+    const zoom = map.getZoom();
 
-    updateTextFields(latitude, longitude);
+    updateTextFields(latitude, longitude, zoom);
   }
 
   // Add event listeners to latitude and longitude input fields
   document.getElementById('latitude-input').addEventListener('input', handleLatitudeChange);
   document.getElementById('longitude-input').addEventListener('input', handleLongitudeChange);
-
+  document.getElementById('zoom-input').addEventListener('input', handleZoomChange);
   // Listen for 'dragend' event on the map
-  map.addListener('dragend', handleMapDrag);
+  map.addListener('dragend', handleMapChange);
+  map.addListener('zoom_changed', handleMapChange);
+
 
   // Get the initial coordinates and update the text fields
   const initialCenter = map.getCenter();
   const initialLatitude = initialCenter.lat();
   const initialLongitude = initialCenter.lng();
-  updateTextFields(initialLatitude, initialLongitude);
+  const initialzoom = map.getZoom();
+  updateTextFields(initialLatitude, initialLongitude, initialzoom);
 
   // Function to handle button click
   document.getElementById('update-button').addEventListener('click', handleClick);
@@ -181,7 +199,7 @@ function toggleCustomResolution() {
 
   // Show or hide the custom resolution text boxes based on the checkbox state
   is_checked = customResolutionCheckbox.checked;
-  customResolutionInputs.style.display = is_checked ? 'block' : 'none';
+  customResolutionInputs.style.display = is_checked ? 'flex' : 'none';
   if (!is_checked) {
     // If unchecked, reset the width and height inputs
     document.getElementById('widthInput').value = '';
