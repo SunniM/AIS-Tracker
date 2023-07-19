@@ -5,15 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="mystyle.css">
 
-    <style>
-        /* CSS to arrange elements side by side */
-        #map,
-        #configElements {
-            display: inline-block;
-            vertical-align: top;
-        }
-    </style>
-
     <script>
         HTMLCanvasElement.prototype.getContext = function (origFn) {
             return function (type, attribs) {
@@ -31,46 +22,57 @@
 </head>
 
 <body onload="loadMap()">
-    <div id="map"></div>
-
-    <div id="configElements">
-        <div>
-            <select id="aspectRatioDropdown" onchange="populateResolutionDropdown()">
-                <option value="" selected disabled>Select Aspect Ratio</option>
-                <option value="1">1:1</option>
-                <option value="4/3">4:3</option>
-                <option value="16/9">16:9</option>
-                <option value="16/10">16:10</option>
-                <option value="5/4">5:4</option>
-                <option value="2.39/1">2.39:1</option>
-                <option value="1.85/1">1.85:1</option>
-                <option value="2/1">2:1</option>
-                <option value="21/9">21:9</option>
-            </select>
-        </div>
-        <div>
-            <select id="resolutionDropdown" onchange="updateDivStyle()">
-                <option value="" selected disabled>Select Resolution</option>
-                <!-- Options will be populated dynamically based on the selected aspect ratio -->
-            </select>
-            <input type="checkbox" id="customResolutionCheckbox" onchange="toggleCustomResolution()">
-            <label for="customResolutionCheckbox">Custom Resolution</label>
-            <div id="customResolutionInputs" style="display: none;">
-                <input type="number" id="widthInput" placeholder="Width">
-                x
-                <input type="number" id="heightInput" placeholder="Height">
+    <div id="container">
+        <div id="map"></div>
+        <form id="form-container">
+            <div id="io-container">
+                <div class="io-item aspect-ratio-container"> <!--Aspect Ratio Dropdown-->
+                    <label for="aspectRatioDropdown">Aspect Ratio:</label>
+                    <select id="aspectRatioDropdown" onchange="populateResolutionDropdown()">
+                        <option value="" selected disabled>Select Aspect Ratio</option>
+                        <option value="1">1:1</option>
+                        <option value="4/3">4:3</option>
+                        <option value="16/9">16:9</option>
+                        <option value="16/10">16:10</option>
+                        <option value="5/4">5:4</option>
+                        <option value="2.39/1">2.39:1</option>
+                        <option value="1.85/1">1.85:1</option>
+                        <option value="2/1">2:1</option>
+                        <option value="21/9">21:9</option>
+                    </select>
+                </div>
+                <div class="io-item"> <!--Resolution Dropdown-->
+                    <label for="resolutionDropdown">Resolution:</label>
+                    <select id="resolutionDropdown" onchange="">
+                        <option value="" selected disabled>Select Resolution</option>
+                        <!-- Options will be populated dynamically based on the selected aspect ratio -->
+                    </select>
+                </div>
+                <div class="io-item">
+                    <input type="checkbox" id="resolution-checkbox" onchange="toggleCustomResolution()">
+                    <label for="resolution-checkbox">Custom Resolution</label>
+                </div>
+                <div class="io-item" id="resolution-input" style="display: none;">
+                    <input type="number" id="widthInput" placeholder="Width">x<input type="number" id="heightInput"
+                        placeholder="Height">
+                </div>
+                <div class="io-item">
+                    <label for="latitude-input">Latitude:</label>
+                    <input type="text" id="latitude-input">
+                </div>
+                <div class="io-item">
+                    <label for="longitude-input">Longitude:</label>
+                    <input type="text" id="longitude-input">
+                </div>
+                <div class="io-item">
+                    <label for="zoom-input">Zoom:</label>
+                    <input type="text" id="zoom-input">
+                </div>
+                <button id="update-button">Update Map</button>
             </div>
-        </div>
-
-        <div>
-            <label for="latitude-input">Latitude:</label>
-            <input type="text" id="latitude-input"></br>
-            <label for="longitude-input">Longitude:</label>
-            <input type="text" id="longitude-input"></br>
-            <button id="update-button">Update Map</button>
-        </div>
+        </form>
     </div>
-
+    </div>
 </body>
 
 </html>

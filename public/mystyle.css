@@ -5,36 +5,67 @@ body {
   color: black;
 }
 
-#aspectRatioContainer {
-  position: relative;
-  width: 100%;
-}
-
-#aspectRatioContent {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-#aspectRatioContainer:before {
-  content: "";
-  display: block;
-  padding-top: calc(100% / 16 * 9);
-  /* Default aspect ratio of 16:9 */
-}
-
-.aspect-ratio-4-3 #aspectRatioContainer:before {
-  padding-top: calc(100% / 4 * 3);
-}
-
-.aspect-ratio-3-2 #aspectRatioContainer:before {
-  padding-top: calc(100% / 3 * 2);
-}
-
 #map {
-  width: 75%;  
+  width: 50%;  
   aspect-ratio: 16/9;
 
+}
+
+#container {
+  display: flex;
+  flex-direction: row;
+}
+
+#map,
+#form-container {
+  flex: 1;
+  padding: 10px;
+}
+
+#form-container {
+  background-color: #f0f0f0;
+  /* Optional, adds a background to the form container */
+}
+
+#io-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.io-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  /* Optional spacing between rows */
+}
+
+.io-item label {
+  margin-top: 5px;
+  margin-right: 10px;
+  /* Optional spacing between label and input */
+  min-width: 100px;
+  /* Set a minimum width for the label */
+}
+
+select {
+  width: 200px;
+  height: 25px;
+  margin: 2px;
+  box-sizing: border-box;
+}
+
+#resolution-input {
+  display: flex;
+}
+
+#resolution-input input {
+  width: 50%
+}
+
+/* Responsive layout - makes a one column layout instead of a two-column layout */
+@media (max-width: 800px) {
+  #container {
+      flex-direction: column;
+  }
 }
