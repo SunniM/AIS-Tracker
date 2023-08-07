@@ -6,9 +6,7 @@ body {
 }
 
 #map {
-  width: 50%;  
   aspect-ratio: 16/9;
-
 }
 
 #container {
@@ -23,8 +21,8 @@ body {
 }
 
 #form-container {
-  background-color: #f0f0f0;
   /* Optional, adds a background to the form container */
+  background-color: #f0f0f0;
 }
 
 #io-container {
@@ -44,15 +42,20 @@ body {
   margin-top: 5px;
   margin-right: 10px;
   /* Optional spacing between label and input */
-  min-width: 100px;
+  min-width: 110px;
   /* Set a minimum width for the label */
 }
+.io-item input {
+  margin-left: 10px;
+  margin-right: 10px;
+}
 
-select {
-  width: 200px;
-  height: 25px;
-  margin: 2px;
-  box-sizing: border-box;
+.io-item select, input {
+  width: 150px
+}
+
+#resolution-checkbox {
+  width: auto;
 }
 
 #resolution-input {
@@ -67,5 +70,13 @@ select {
 @media (max-width: 800px) {
   #container {
       flex-direction: column;
+      align-items: center;
+
+  }
+  #form-container{
+    width: 100%;
+  }
+  #map {
+    width:100%
   }
 }

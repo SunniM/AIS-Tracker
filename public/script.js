@@ -190,8 +190,8 @@ function populateResolutionDropdown() {
 
 }
 function toggleCustomResolution() {
-  const customResolutionInputs = document.getElementById('customResolutionInputs');
-  const customResolutionCheckbox = document.getElementById('customResolutionCheckbox');
+  const customResolutionInputs = document.getElementById('resolution-input');
+  const customResolutionCheckbox = document.getElementById('resolution-checkbox');
   const aspectRatioDropdown = document.getElementById('aspectRatioDropdown');
   const resolutionDropdown = document.getElementById('resolutionDropdown');
   const widthInput = document.getElementById('widthInput');
