@@ -86,10 +86,10 @@ class Renderer:
         more_frames, frame = self.video.read()
         fps = self.video.get(cv2.CAP_PROP_FPS)
         self.running = more_frames
-
+        keys = pygame.key.get_pressed()
         while self.running:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+                if event.type == pygame.QUIT or keys[pygame.K_ESCAPE] == True:
                     self.running = False
                 elif event.type == events.NEW_IMAGE_EVENT:
                     print('New image received')
@@ -126,7 +126,9 @@ class Renderer:
             # for x, y in ship_list_copy.values():
             #     rect = pygame.Rect(x-(box_width//2), y-(box_width//2), 10, 10)
             #     pygame.draw.rect(screen, (255, 0, 0), rect)
-
+        
+            
+            keys = pygame.key.get_pressed()
             pygame.display.flip()
             clock.tick(fps)
 
