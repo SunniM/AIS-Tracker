@@ -84,11 +84,16 @@
 
         // Function to handle button click
         function handleClick() {
+            const box = document.getElementById("sample");
+
+
             const center = map.getCenter();
             const data = {
                 latitude: center.lat(),
                 longitude: center.lng(),
-                zoom: map.getZoom()
+                zoom: map.getZoom(),
+                width: box.offsetWidth,
+                height: box.offsetHeight
             };
 
             // Send the POST request

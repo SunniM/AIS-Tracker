@@ -22,10 +22,10 @@ server_address = ('localhost', 8080)
 class RequestHandler(BaseHTTPRequestHandler):
 
 
-    def __init__(self, pipe, image_queue, *args, **kwargs):
+    def __init__(self, pipe, event_queue, *args, **kwargs):
         self.ws_handler = None
         self.pipe = pipe
-        self.image_queue = image_queue
+        self.event_queue = event_queue
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
     
     # Handles get requests
@@ -71,8 +71,16 @@ class RequestHandler(BaseHTTPRequestHandler):
                 file_written = True
             except:
                 pass
-        self.pipe.send(base64.b64decode(image_data))
-        print('bytes sent')
+        message = {
+            "message_type" : "image",
+            "message" : {
+                "image_data" : image_data
+            }
+        }
+        message  = json.dumps(message)
+        if self.event_queue:
+            self.event_queue.put(message)
+            print('bytes sent')
 
     def handle_default_post(self):
         try:
@@ -85,7 +93,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             data = json.loads(post_data)
            
             # Do something with the data
-            map = Map.Map(data['latitude'], data['longitude'], data['zoom'])
+            map = Map.Map(data)
 
             if self.pipe:
                 self.pipe.send(map)
@@ -101,8 +109,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             traceback.print_exc()
 
 # Starts server and handles communicates with controller
-def run_server(conn=None, image_queue=None):
-    server = HTTPServer(server_address, lambda *args, **kwargs: RequestHandler(conn, image_queue, *args, **kwargs))
+def run_server(conn=None, event_queue=None):
+    server = HTTPServer(server_address, lambda *args, **kwargs: RequestHandler(conn, event_queue, *args, **kwargs))
     print("Server started http://%s:%s" % server_address)
 
     # Serve requests until the parent process sends the termination signal
