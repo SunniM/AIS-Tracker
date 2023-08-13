@@ -75,7 +75,7 @@ class Renderer:
             (self.width, self.height), flags=self.fullscreen)
         clock = pygame.time.Clock()
 
-        boat_img = pygame.image.load("assets/boat.png")
+        boat_img = pygame.image.load("assets/dot.png")
         self.video = cv2.VideoCapture("assets/water.mp4")
         self._mask_image()
 
@@ -110,7 +110,10 @@ class Renderer:
             with self.ship_list_lock:
                 ship_list_copy = self.ship_list.copy()  # Make a local copy of the ship list
 
-                # Calculate the position to center the image
+            for x, y in ship_list_copy.values():
+                screen.blit(boat_img, [x, y])
+
+            # Calculate the position to center the image
             image_rect = self.image.get_rect()
             x = (self.width - image_rect.width) // 2
             y = (self.height - image_rect.height) // 2
@@ -118,9 +121,7 @@ class Renderer:
             # Blit the image at the calculated position
             screen.blit(self.image, (x, y))
 
-            box_width = 11
-            for x, y in ship_list_copy.values():
-                screen.blit(boat_img, [x, y])
+
 
             # box_width = 10
             # for x, y in ship_list_copy.values():
