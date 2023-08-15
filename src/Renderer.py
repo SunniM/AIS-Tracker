@@ -110,9 +110,7 @@ class Renderer:
             with self.ship_list_lock:
                 ship_list_copy = self.ship_list.copy()  # Make a local copy of the ship list
 
-            for x, y in ship_list_copy.values():
-                screen.blit(boat_img, [x, y])
-
+           
             # Calculate the position to center the image
             image_rect = self.image.get_rect()
             x = (self.width - image_rect.width) // 2
@@ -121,6 +119,8 @@ class Renderer:
             # Blit the image at the calculated position
             screen.blit(self.image, (x, y))
 
+            for x, y in ship_list_copy.values():
+                screen.blit(boat_img, [x, y])
 
 
             # box_width = 10

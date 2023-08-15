@@ -88,8 +88,7 @@ class WebSocketHandler():
             # calculating a ratio for the x and y pixel based on size of the window
 
             x = int(width * abs((Longitude - self.west) / (self.east - self.west)))
-            y = int(height * abs((self.north - Latitude) /
-                    (self.north - self.south)))
+            y = int(height * abs((Latitude - self.north) / (self.north - self.south)))
 
             # end of should be in a methode, but wasn't able to get it working
             ship_message = {

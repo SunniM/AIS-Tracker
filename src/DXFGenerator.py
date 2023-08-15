@@ -60,8 +60,8 @@ ret, thresh_img = cv2.threshold(img_gray, thresh, 255, cv2.THRESH_BINARY)
 contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
 # Specify the desired size of the DXF drawing and the minimum contour area to close gaps
-width = 0.609682  # Width in units (e.g., meters)
-height = 0.4316  # Height in units (e.g., meters)
+width = 0.595  # Width in units (e.g., meters)
+height = width*9/16  # Height in units (e.g., meters)
 min_contour_area = 100000  # Minimum contour area to close gaps (adjust as needed)
 
 # Generate a single DXF file for all contours
