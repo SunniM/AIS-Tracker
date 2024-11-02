@@ -1,5 +1,5 @@
 import websocket
-import threading
+import multiprocessing as mp
 import rel
 import json
 from datetime import datetime, timezone
@@ -16,27 +16,27 @@ class WebSocketHandler():
         self.input_queue = input_queue
         self.map = map
 
-        self.ws = websocket.WebSocketApp("wss://stream.aisstream.io/v0/stream",
-                                         on_open=self.on_open,
-                                         on_message=self.on_message,
-                                         on_error=self.on_error,
-                                         on_close=self.on_close,
-                                         )
 
     def run(self, south, west, north, east):
         # websocket.enableTrace(True)
+        self.ws = websocket.WebSocketApp("wss://stream.aisstream.io/v0/stream",
+                                    on_open=self.on_open,
+                                    on_message=self.on_message,
+                                    on_error=self.on_error,
+                                    on_close=self.on_close,
+                                    )
         self.set_bounding_box(south, west, north, east)
 
         self.running  = True
 
         if self.input_queue:
-            queue_thread = threading.Thread(target=self.check_queue)
-            queue_thread.start()
+            queue_process = mp.Process(target=self.check_queue)
+            queue_process.start()
 
         self.ws.run_forever(dispatcher=rel)  # dispatcher = rel
         rel.signal(2, rel.abort)  # Keyboard Interrupt
         rel.dispatch()
-        queue_thread.join()
+        queue_process.join()
 
     def check_queue(self):
         while self.running:
